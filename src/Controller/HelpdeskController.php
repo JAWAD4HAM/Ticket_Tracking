@@ -8,11 +8,31 @@ use Symfony\Component\Routing\Attribute\Route;
 
 class HelpdeskController extends AbstractController
 {
+
+
+     #[Route('/', name: 'app_dashboard')]
+
+    public function dashboard(): Response
+    {
+
+        return $this->render('dashboard/dashboard.html.twig');
+
+    }
+
+
+
+
+
     #[Route('/ticket/create', name: 'app_ticket_create')]
+
     public function createTicket(): Response
     {
         return $this->render('create_ticket.html.twig');
     }
+
+   
+
+
 
     #[Route('/agents', name: 'app_agents')]
     public function agents(): Response
@@ -32,9 +52,5 @@ class HelpdeskController extends AbstractController
         return $this->render('ticket_assignement.html.twig');
     }
 
-    #[Route('/attachments', name: 'app_attachments')]
-    public function attachments(): Response
-    {
-        return $this->render('attachements.html.twig');
-    }
+
 }

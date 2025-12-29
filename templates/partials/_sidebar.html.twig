@@ -1,8 +1,16 @@
 <nav class="sidebar">
     <div class="brand">Genesys Helpdesk</div>
     <ul class="nav-menu">
+
+
         <li>
-            {# CHANGED: Added .attributes before .get #}
+            <a href="{{ path('app_dashboard') }}" class="nav-link {{ app.request.attributes.get('_route') == 'app_dashboard' ? 'active' : '' }}">
+                Dashboard
+            </a>
+        </li>
+
+
+        <li>
             <a href="{{ path('app_ticket_create') }}" class="nav-link {{ app.request.attributes.get('_route') == 'app_ticket_create' ? 'active' : '' }}">
                 Create Ticket
             </a>
@@ -22,10 +30,6 @@
                 Assign Ticket
             </a>
         </li>
-        <li>
-            <a href="{{ path('app_attachments') }}" class="nav-link {{ app.request.attributes.get('_route') == 'app_attachments' ? 'active' : '' }}">
-                Attachments
-            </a>
-        </li>
+       
     </ul>
 </nav>
