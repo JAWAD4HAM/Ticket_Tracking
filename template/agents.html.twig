@@ -7,50 +7,62 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <div class="app-container">
+        <nav class="sidebar">
+            <div class="brand">Genesys Helpdesk</div>
+            <ul class="nav-menu">
+                <li><a href="create_ticket.html" class="nav-link">Create Ticket</a></li>
+                <li><a href="agents.html" class="nav-link active">Register Agent</a></li>
+                <li><a href="adduser.html" class="nav-link">Create User</a></li>
+                <li><a href="ticket_assignement.html" class="nav-link">Assign Ticket</a></li>
+                <li><a href="attachements.html" class="nav-link">Attachments</a></li>
+            </ul>
+        </nav>
 
-    <div class="card">
-        <div class="card-header">
-            <h3 class="card-title">Register New Agent</h3>
-            <p class="card-subtitle">Add a new support agent to the helpdesk system.</p>
-        </div>
-
-        <form action="/submit-agent" method="POST" class="form-stack">
-            
-            <input type="hidden" name="agent_id" value="">
-
-            <div class="form-group">
-                <label class="label">Agent Name (Nom)</label>
-                <input type="text" name="nom" required placeholder="e.g. Sarah Connor" class="input">
-            </div>
-
-            <div class="form-row">
-                <div class="form-group">
-                    <label class="label">Specialty</label>
-                    <input type="text" name="specialite" required placeholder="e.g. Network Infrastructure" class="input">
+        <main class="main-content">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Register New Agent</h3>
+                    <p class="card-subtitle">Add a new support agent to the helpdesk system.</p>
                 </div>
-                <div class="form-group">
-                    <label class="label">Availability (Disponible)</label>
-                    <select name="disponible" class="select">
-                        <option value="true" selected>Available</option>
-                        <option value="false">Unavailable / Busy</option>
-                    </select>
-                </div>
-            </div>
 
-            <div class="alert-box alert-emerald">
-                <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                <div>
-                    <span style="font-weight: bold; display: block; margin-bottom: 0.25rem;">Status Note</span>
-                    Agents marked as "Available" will immediately appear in the assignment queue for incoming tickets.
-                </div>
-            </div>
+                <form action="/submit-agent" method="POST" class="form-stack">
+                    <input type="hidden" name="agent_id" value="">
 
-            <div class="btn-group">
-                <button type="reset" class="btn btn-reset">Reset</button>
-                <button type="submit" class="btn btn-submit">Register Agent</button>
+                    <div class="form-group">
+                        <label class="label">Agent Name (Nom)</label>
+                        <input type="text" name="nom" required placeholder="e.g. Sarah Connor" class="input">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="label">Specialty</label>
+                            <input type="text" name="specialite" required placeholder="e.g. Network Infrastructure" class="input">
+                        </div>
+                        <div class="form-group">
+                            <label class="label">Availability (Disponible)</label>
+                            <select name="disponible" class="select">
+                                <option value="true" selected>Available</option>
+                                <option value="false">Unavailable / Busy</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="alert-box alert-emerald">
+                        <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <div>
+                            <span style="font-weight: bold; display: block; margin-bottom: 0.25rem;">Status Note</span>
+                            Agents marked as "Available" will immediately appear in the assignment queue for incoming tickets.
+                        </div>
+                    </div>
+
+                    <div class="btn-group">
+                        <button type="reset" class="btn btn-reset">Reset</button>
+                        <button type="submit" class="btn btn-submit">Register Agent</button>
+                    </div>
+                </form>
             </div>
-        </form>
+        </main>
     </div>
-
 </body>
 </html>
