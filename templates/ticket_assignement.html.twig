@@ -4,20 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Genesys Helpdesk | Assign Ticket</title>
-    <link rel="stylesheet" href="style.css">
-</head>
+<link rel="stylesheet" href="{{ asset('css/style.css') }}"></head>
 <body>
     <div class="app-container">
-        <nav class="sidebar">
-            <div class="brand">Genesys Helpdesk</div>
-            <ul class="nav-menu">
-                <li><a href="create_ticket.html" class="nav-link">Create Ticket</a></li>
-                <li><a href="agents.html" class="nav-link">Register Agent</a></li>
-                <li><a href="adduser.html" class="nav-link">Create User</a></li>
-                <li><a href="ticket_assignement.html" class="nav-link active">Assign Ticket</a></li>
-                <li><a href="attachements.html" class="nav-link">Attachments</a></li>
-            </ul>
-        </nav>
+     
+     {{ include('partials/_sidebar.html.twig') }}
 
         <main class="main-content">
             <div class="card">
