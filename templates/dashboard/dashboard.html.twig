@@ -11,7 +11,7 @@
         {{ include('partials/_sidebar.html.twig') }}
 
         <main class="main-content">
-            <div style="width: 100%; max-width: 1000px;">
+            <div style="width: 100%; max-width: 1200px;">
                 
                 <div style="margin-bottom: 2rem;">
                     <h2 style="font-size: 1.8rem; margin: 0; color: #0F172A;">Dashboard Overview</h2>
@@ -19,6 +19,7 @@
                 </div>
 
                 <div class="dashboard-grid">
+
                     <div class="stat-card">
                         <div class="stat-icon bg-blue-soft">🎫</div>
                         <div class="stat-info">
@@ -26,29 +27,56 @@
                             <span>1,245</span>
                         </div>
                     </div>
+
                     <div class="stat-card">
-                        <div class="stat-icon bg-orange-soft">⚠️</div>
+                        <div class="stat-icon bg-purple-soft">📥</div>
                         <div class="stat-info">
-                            <h4>Pending Urgent</h4>
+                            <h4>Incoming Tickets</h4>
+                            <span>45</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon bg-orange-soft">⏳</div>
+                        <div class="stat-info">
+                            <h4>Pending Tickets</h4>
                             <span>14</span>
                         </div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-icon bg-emerald-soft">👨‍💻</div>
-                        <div class="stat-info">
-                            <h4>Agents Online</h4>
-                            <span>8</span>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon bg-purple-soft">✅</div>
-                        <div class="stat-info">
-                            <h4>Resolved Today</h4>
-                            <span>32</span>
-                        </div>
-                    </div>
-                </div>
 
+                    <div class="stat-card">
+                        <div class="stat-icon bg-blue-soft">👤</div>
+                        <div class="stat-info">
+                            <h4>Assigned Tickets</h4>
+                            <span>28</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon bg-purple-soft">📅</div>
+                        <div class="stat-info">
+                            <h4>Planned Tickets</h4>
+                            <span>12</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon bg-emerald-soft">✅</div>
+                        <div class="stat-info">
+                            <h4>Solved Tickets</h4>
+                            <span>1,150</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon bg-emerald-soft">🔒</div>
+                        <div class="stat-info">
+                            <h4>Closed Tickets</h4>
+                            <span>980</span>
+                        </div>
+                    </div>
+
+                </div>
                 <div class="card">
                     <div class="card-header" style="margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;">
                         <h3 class="card-title" style="font-size: 1.25rem;">Recent Tickets</h3>

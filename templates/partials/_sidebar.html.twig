@@ -15,6 +15,13 @@
                 Create Ticket
             </a>
         </li>
+
+        <li>
+            <a href="{{ path('app_ticket') }}" class="nav-link {{ app.request.attributes.get('_route') == 'app_ticket' ? 'active' : '' }}">
+                Tickets
+            </a>
+        </li>
+
         <li>
             <a href="{{ path('app_agents') }}" class="nav-link {{ app.request.attributes.get('_route') == 'app_agents' ? 'active' : '' }}">
                 Register Agent

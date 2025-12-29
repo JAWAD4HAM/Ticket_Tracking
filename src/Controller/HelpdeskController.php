@@ -30,6 +30,14 @@ class HelpdeskController extends AbstractController
         return $this->render('create_ticket.html.twig');
     }
 
+    
+    #[Route('/ticket', name: 'app_ticket')]
+
+    public function ticket(): Response
+    {
+        return $this->render('ticket.html.twig');
+    }
+
    
 
 
