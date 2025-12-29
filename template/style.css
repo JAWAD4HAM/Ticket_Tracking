@@ -1,0 +1,209 @@
+/* 1. Fonts & Variables */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+    --bg-color: #F1F5F9;         /* Slate-100 */
+    --card-bg: #FFFFFF;
+    --text-main: #1E293B;        /* Slate-800 */
+    --text-muted: #64748B;       /* Slate-500 */
+    --border-color: #E2E8F0;     /* Slate-200 */
+    --input-bg: #F8FAFC;         /* Slate-50 */
+    --primary-color: #0F172A;    /* Slate-900 */
+    --primary-hover: #000000;
+    --accent-color: #3B82F6;     /* Blue-500 */
+}
+
+* {
+    box-sizing: border-box;
+}
+
+/* 2. Base Body Layout */
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-color);
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem; /* p-6 */
+}
+
+/* 3. Card Component */
+.card {
+    background-color: var(--card-bg);
+    padding: 2rem; /* p-8 */
+    border-radius: 1.5rem; /* rounded-3xl */
+    border: 1px solid #F1F5F9;
+    width: 100%;
+    max-width: 42rem; /* max-w-2xl */
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+}
+
+.card-header {
+    margin-bottom: 2rem; /* mb-8 */
+}
+
+.card-title {
+    font-weight: 700;
+    color: var(--text-main);
+    font-size: 1.5rem; /* text-2xl */
+    margin: 0 0 0.5rem 0;
+}
+
+.card-subtitle {
+    color: var(--text-muted);
+    font-size: 0.875rem; /* text-sm */
+    margin: 0;
+}
+
+/* 4. Form Layouts */
+.form-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem; /* space-y-5 */
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+}
+
+/* Responsive Grid (md:grid-cols-2) */
+@media (min-width: 768px) {
+    .form-row {
+        grid-template-columns: 1fr 1fr;
+    }
+    .btn-group {
+        flex-direction: row;
+    }
+    .btn-reset { width: 33.33%; }
+    .btn-submit { width: 66.66%; }
+}
+
+/* 5. Inputs & Labels */
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.label {
+    display: block;
+    font-size: 0.75rem; /* text-xs */
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.25rem;
+}
+
+.input, .select, .textarea {
+    width: 100%;
+    background-color: var(--input-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 0.75rem; /* rounded-xl */
+    padding: 0.75rem; /* p-3 */
+    font-size: 0.875rem; /* text-sm */
+    color: var(--text-main);
+    transition: all 0.2s;
+    outline: none;
+    font-family: inherit;
+}
+
+.textarea {
+    resize: none;
+}
+
+.input:focus, .select:focus, .textarea:focus {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.helper-text {
+    font-size: 10px;
+    color: #94A3B8;
+    margin-top: 0.25rem;
+    margin-left: 0.25rem;
+}
+
+/* 6. Buttons */
+.btn-group {
+    padding-top: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.btn {
+    padding: 1rem;
+    border-radius: 1rem; /* rounded-2xl */
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-reset {
+    background-color: #F1F5F9;
+    color: #475569;
+    width: 100%;
+}
+.btn-reset:hover { background-color: #E2E8F0; }
+
+.btn-submit {
+    background-color: var(--primary-color);
+    color: white;
+    width: 100%;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+.btn-submit:hover { background-color: var(--primary-hover); }
+
+/* 7. Special Components (Upload / Alerts) */
+.alert-box {
+    padding: 1rem;
+    border-radius: 1rem;
+    border: 1px solid;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    font-size: 0.75rem;
+}
+/* Blue Alert */
+.alert-blue {
+    background-color: #EFF6FF;
+    border-color: #DBEAFE;
+    color: #1E40AF;
+}
+.alert-blue svg { color: #3B82F6; }
+
+/* Emerald Alert */
+.alert-emerald {
+    background-color: #ECFDF5;
+    border-color: #D1FAE5;
+    color: #065F46;
+}
+.alert-emerald svg { color: #10B981; }
+
+.upload-area {
+    margin-top: 0.25rem;
+    display: flex;
+    justify-content: center;
+    padding: 1.25rem 1.5rem;
+    border: 2px dashed var(--border-color);
+    border-radius: 1rem;
+    background-color: var(--input-bg);
+    cursor: pointer;
+    position: relative;
+    transition: background-color 0.2s;
+}
+.upload-area:hover { background-color: #F1F5F9; }
+.upload-content { text-align: center; }
+.upload-icon { height: 2.5rem; width: 2.5rem; color: #94A3B8; margin: 0 auto; }
+.upload-text { font-size: 0.875rem; color: #475569; display: flex; justify-content: center; }
+.upload-link { font-weight: 600; color: var(--accent-color); }
+.upload-hint { font-size: 0.75rem; color: #94A3B8; }
+.file-input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+
+/* SVG Utility */
+.icon { width: 1.25rem; height: 1.25rem; }
