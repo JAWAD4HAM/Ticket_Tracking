@@ -60,5 +60,9 @@ class HelpdeskController extends AbstractController
         return $this->render('ticket_assignement.html.twig');
     }
 
-
+    #[Route('/settings', name: 'app_settings')]
+    public function settings(): Response
+    {
+        return $this->render('settings.html.twig');
+    }
 }

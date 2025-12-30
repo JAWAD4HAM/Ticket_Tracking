@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Genesys Helpdesk | Settings</title>
+    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+</head>
+<body>
+    <div class="app-container">
+      
+      {{ include('partials/_sidebar.html.twig') }}
+
+        <main class="main-content">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Settings</h3>
+                    <p class="card-subtitle">Manage your application preferences</p>
+                </div>
+
+                <div class="card-body">
+                    <form class="form-stack">
+                        <div class="form-group">
+                            <h4 class="section-title">Profile Settings</h4>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="label">Display Name</label>
+                                    <input type="text" class="input" value="John Doe">
+                                </div>
+                                <div class="form-group">
+                                    <label class="label">Email</label>
+                                    <input type="email" class="input" value="john.doe@genesys.com" disabled>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <h4 class="section-title">Notifications</h4>
+                            <div class="checkbox-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" checked> Email Notifications
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" checked> Desktop Notifications
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <h4 class="section-title">Appearance</h4>
+                            <div class="form-group">
+                                <label class="label">Theme</label>
+                                <select class="select">
+                                    <option value="light">Light</option>
+                                    <option value="dark">Dark</option>
+                                    <option value="system">System Default</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="btn-group">
+                            <button type="submit" class="btn btn-submit">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

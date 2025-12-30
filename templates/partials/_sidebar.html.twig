@@ -37,6 +37,11 @@
                 Assign Ticket
             </a>
         </li>
+        <li>
+            <a href="{{ path('app_settings') }}" class="nav-link {{ app.request.attributes.get('_route') == 'app_settings' ? 'active' : '' }}">
+                Settings
+            </a>
+        </li>
        
     </ul>
 </nav>
