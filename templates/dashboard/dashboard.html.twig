@@ -24,7 +24,7 @@
                         <div class="stat-icon bg-blue-soft">🎫</div>
                         <div class="stat-info">
                             <h4>Total Tickets</h4>
-                            <span>1,245</span>
+                            <span>{{ totalTickets }}</span>
                         </div>
                     </div>
 
@@ -32,7 +32,7 @@
                         <div class="stat-icon bg-purple-soft">📥</div>
                         <div class="stat-info">
                             <h4>Incoming Tickets</h4>
-                            <span>45</span>
+                            <span>{{ incomingTickets }}</span>
                         </div>
                     </div>
 
@@ -40,7 +40,7 @@
                         <div class="stat-icon bg-orange-soft">⏳</div>
                         <div class="stat-info">
                             <h4>Pending Tickets</h4>
-                            <span>14</span>
+                            <span>{{ pendingTickets }}</span>
                         </div>
                     </div>
 
@@ -48,7 +48,7 @@
                         <div class="stat-icon bg-blue-soft">👤</div>
                         <div class="stat-info">
                             <h4>Assigned Tickets</h4>
-                            <span>28</span>
+                            <span>{{ assignedTickets }}</span>
                         </div>
                     </div>
 
@@ -56,7 +56,7 @@
                         <div class="stat-icon bg-purple-soft">📅</div>
                         <div class="stat-info">
                             <h4>Planned Tickets</h4>
-                            <span>12</span>
+                            <span>{{ plannedTickets }}</span>
                         </div>
                     </div>
 
@@ -64,7 +64,7 @@
                         <div class="stat-icon bg-emerald-soft">✅</div>
                         <div class="stat-info">
                             <h4>Solved Tickets</h4>
-                            <span>1,150</span>
+                            <span>{{ solvedTickets }}</span>
                         </div>
                     </div>
 
@@ -72,7 +72,7 @@
                         <div class="stat-icon bg-emerald-soft">🔒</div>
                         <div class="stat-info">
                             <h4>Closed Tickets</h4>
-                            <span>980</span>
+                            <span>{{ closedTickets }}</span>
                         </div>
                     </div>
 
@@ -95,27 +95,21 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <td>#T-2025-001</td>
-                                    <td>VPN Connection Failure</td>
-                                    <td>Sarah Connor</td>
-                                    <td>Today, 10:30 AM</td>
-                                    <td><span class="status-badge status-open">Open</span></td>
-                                </tr>
-                                <tr>
-                                    <td>#T-2025-002</td>
-                                    <td>Printer Jam on 3rd Floor</td>
-                                    <td>John Doe</td>
-                                    <td>Yesterday, 4:15 PM</td>
-                                    <td><span class="status-badge status-closed">Resolved</span></td>
-                                </tr>
-                                <tr>
-                                    <td>#T-2025-003</td>
-                                    <td>Email Sync Issues</td>
-                                    <td>Unassigned</td>
-                                    <td>Dec 28, 09:00 AM</td>
-                                    <td><span class="status-badge status-open">Pending</span></td>
-                                </tr>
+                                {% for ticket in recentTickets %}
+                                    {% set statusLabel = ticket.status_label ?? 'Open' %}
+                                    {% set statusClass = statusLabel|lower in ['resolved', 'closed'] ? 'status-closed' : 'status-open' %}
+                                    <tr>
+                                        <td>#T-{{ ticket.id }}</td>
+                                        <td>{{ ticket.title }}</td>
+                                        <td>{{ ticket.assignee_name ?? 'Unassigned' }}</td>
+                                        <td>{{ ticket.created_at|date('M d, Y H:i') }}</td>
+                                        <td><span class="status-badge {{ statusClass }}">{{ statusLabel }}</span></td>
+                                    </tr>
+                                {% else %}
+                                    <tr>
+                                        <td colspan="5">No tickets yet.</td>
+                                    </tr>
+                                {% endfor %}
                             </tbody>
                         </table>
                     </div>
