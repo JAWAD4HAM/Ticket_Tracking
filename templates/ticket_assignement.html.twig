@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Genesys Helpdesk | Assign Ticket</title>
-<link rel="stylesheet" href="{{ asset('css/style.css') }}"></head>
+    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+</head>
 <body>
     <div class="app-container">
      
@@ -18,31 +19,34 @@
                 </div>
 
                 <form action="/submit-assignment" method="POST" class="form-stack">
-                    <input type="hidden" name="assignment_id" value="">
-
                     <div class="form-row">
                         <div class="form-group">
-                            <label class="label">Ticket ID</label>
-                            <input type="text" name="ticket_id" required placeholder="e.g. T-2024-885" class="input">
+                            <label class="label">Ticket</label>
+                            <select name="ticket_id" class="select" required>
+                                <option value="">Select a ticket</option>
+                                {% for ticket in tickets %}
+                                    <option value="{{ ticket.id }}">#T-{{ ticket.id }} - {{ ticket.title }}</option>
+                                {% endfor %}
+                            </select>
                             <p class="helper-text">Reference ID of the ticket to be assigned.</p>
                         </div>
                         <div class="form-group">
-                            <label class="label">Agent ID</label>
-                            <input type="text" name="agent_id" required placeholder="e.g. AGT-007" class="input">
-                             <p class="helper-text">ID of the technician taking ownership.</p>
+                            <label class="label">Agent</label>
+                            <select name="agent_id" class="select" required>
+                                <option value="">Select an agent</option>
+                                {% for agent in agents %}
+                                    <option value="{{ agent.id }}">#AG-{{ agent.id }} - {{ agent.name }}</option>
+                                {% endfor %}
+                            </select>
+                            <p class="helper-text">Agent taking ownership.</p>
                         </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="label">Date Assignation</label>
-                        <input type="date" name="date_assignation" required class="input">
                     </div>
 
                     <div class="alert-box alert-blue">
                         <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         <div>
                             <span style="font-weight: bold; display: block; margin-bottom: 0.25rem;">Assignment Note</span>
-                            Assigning a ticket will trigger an email notification to the agent and update the ticket status to "In Progress".
+                            Assigning a ticket updates the ticket status to "In Progress" when available.
                         </div>
                     </div>
 
@@ -54,6 +58,5 @@
             </div>
         </main>
     </div>
-    <script>document.querySelector('input[name="date_assignation"]').valueAsDate = new Date();</script>
 </body>
 </html>

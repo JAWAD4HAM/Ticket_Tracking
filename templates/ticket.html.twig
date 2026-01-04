@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Genesys Helpdesk | Dashboard</title>
+    <title>Genesys Helpdesk | Tickets</title>
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
 </head>
 <body>
@@ -31,27 +31,21 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td>#T-2025-001</td>
-                                <td>VPN Connection Failure</td>
-                                <td>Sarah Connor</td>
-                                <td>Today, 10:30 AM</td>
-                                <td><span class="status-badge status-open">Open</span></td>
-                            </tr>
-                            <tr>
-                                <td>#T-2025-002</td>
-                                <td>Printer Jam on 3rd Floor</td>
-                                <td>John Doe</td>
-                                <td>Yesterday, 4:15 PM</td>
-                                <td><span class="status-badge status-closed">Resolved</span></td>
-                            </tr>
-                            <tr>
-                                <td>#T-2025-003</td>
-                                <td>Email Sync Issues</td>
-                                <td>Unassigned</td>
-                                <td>Dec 28, 09:00 AM</td>
-                                <td><span class="status-badge status-open">Pending</span></td>
-                            </tr>
+                            {% for ticket in tickets %}
+                                {% set statusLabel = ticket.status_label ?? 'Open' %}
+                                {% set statusClass = statusLabel|lower in ['resolved', 'closed'] ? 'status-closed' : 'status-open' %}
+                                <tr>
+                                    <td>#T-{{ ticket.id }}</td>
+                                    <td>{{ ticket.title }}</td>
+                                    <td>{{ ticket.assignee_name ?? 'Unassigned' }}</td>
+                                    <td>{{ ticket.created_at|date('M d, Y H:i') }}</td>
+                                    <td><span class="status-badge {{ statusClass }}">{{ statusLabel }}</span></td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td colspan="5">No tickets available.</td>
+                                </tr>
+                            {% endfor %}
                         </tbody>
                     </table>
                 </div>
