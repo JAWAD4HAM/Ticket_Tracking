@@ -1,63 +1,90 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Genesys Helpdesk | Dashboard</title>
-    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
-</head>
-<body>
+{% extends 'base.html.twig' %}
 
-    <div class="app-container">
+{% block title %}All Tickets{% endblock %}
 
-        {{ include('partials/_sidebar.html.twig') }}
+{% block body %}
+    <div class="card">
+        <div class="card-header" style="margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;">
+            <h3 class="card-title">All Tickets</h3>
+             {% if is_granted('ROLE_USER') and not is_granted('ROLE_TECH') %}
+                <a href="{{ path('app_ticket_create') }}" style="font-size: 0.875rem; color: #3B82F6; text-decoration: none; font-weight: 600;">+ New Ticket</a>
+            {% endif %}
+        </div>
 
-        <main class="main-content">
-            <div class="card">
-                <div class="card-header" style="margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;">
-                    <h3 class="card-title" style="font-size: 1.25rem;">Recent Tickets</h3>
-                    <a href="{{ path('app_ticket_create') }}" style="font-size: 0.875rem; color: #3B82F6; text-decoration: none; font-weight: 600;">+ New Ticket</a>
-                </div>
-                
-                <div class="table-container">
-                    <table class="styled-table">
-                        <thead>
-                            <tr>
-                                <th>Ticket ID</th>
-                                <th>Subject</th>
-                                <th>Assigned To</th>
-                                <th>Date</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>#T-2025-001</td>
-                                <td>VPN Connection Failure</td>
-                                <td>Sarah Connor</td>
-                                <td>Today, 10:30 AM</td>
-                                <td><span class="status-badge status-open">Open</span></td>
-                            </tr>
-                            <tr>
-                                <td>#T-2025-002</td>
-                                <td>Printer Jam on 3rd Floor</td>
-                                <td>John Doe</td>
-                                <td>Yesterday, 4:15 PM</td>
-                                <td><span class="status-badge status-closed">Resolved</span></td>
-                            </tr>
-                            <tr>
-                                <td>#T-2025-003</td>
-                                <td>Email Sync Issues</td>
-                                <td>Unassigned</td>
-                                <td>Dec 28, 09:00 AM</td>
-                                <td><span class="status-badge status-open">Pending</span></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </main>
+        <form method="get" action="{{ path('app_ticket') }}" style="margin-bottom: 1rem; display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center;">
+            <select name="status" class="select" style="min-width: 160px;">
+                <option value="">All Statuses</option>
+                {% for status in statuses %}
+                    <option value="{{ status.label }}" {% if filters.status == status.label %}selected{% endif %}>
+                        {{ status.label }}
+                    </option>
+                {% endfor %}
+            </select>
+            <select name="priority" class="select" style="min-width: 160px;">
+                <option value="">All Priorities</option>
+                {% for priority in priorities %}
+                    <option value="{{ priority.id }}" {% if filters.priority == priority.id %}selected{% endif %}>
+                        {{ priority.label }}
+                    </option>
+                {% endfor %}
+            </select>
+            <input type="date" name="from" value="{{ filters.from }}" class="input" />
+            <input type="date" name="to" value="{{ filters.to }}" class="input" />
+            <button class="btn btn-primary" type="submit">Filter</button>
+            <a class="btn btn-secondary" href="{{ path('app_ticket') }}" style="text-decoration: none;">Clear</a>
+        </form>
+        
+        <div class="table-container">
+            <table class="styled-table">
+                <thead>
+                    <tr>
+                        <th>Ticket ID</th>
+                        <th>Subject</th>
+                        <th>Creator</th>
+                        <th>Assignee</th>
+                        <th>Category</th>
+                        <th>Priority</th>
+                        <th>SLA</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ticket in tickets %}
+                        <tr>
+                            <td>#{{ ticket.id }}</td>
+                            <td>{{ ticket.title }}</td>
+                            <td>{{ ticket.creator ? ticket.creator.name : 'Unknown' }}</td>
+                            <td>{{ ticket.assignee ? ticket.assignee.name : '-' }}</td>
+                            <td>{{ ticket.category ? ticket.category.label : '-' }}</td>
+                            <td>{{ ticket.priority ? ticket.priority.label : '-' }}</td>
+                            <td>
+                                {% if ticket.slaDueAt %}
+                                    {% set overdue = ticket.slaDueAt < date() %}
+                                    <span class="status-badge {{ overdue ? 'status-closed' : 'status-open' }}">
+                                        {{ ticket.slaDueAt|date('M d, H:i') }}
+                                    </span>
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% set statusLabel = ticket.status ? ticket.status.label : 'N/A' %}
+                                <span class="status-badge {{ statusLabel in ['Ouvert', 'En cours'] ? 'status-open' : 'status-closed' }}">
+                                    {{ statusLabel }}
+                                </span>
+                            </td>
+                            <td>
+                                <a href="{{ path('app_ticket_show', {id: ticket.id}) }}" style="color: #3B82F6;">View</a>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="8">No tickets found.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
-
-</body>
-</html>
+{% endblock %}

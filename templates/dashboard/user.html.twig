@@ -1,0 +1,50 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Client Dashboard{% endblock %}
+
+{% block body %}
+<div class="card">
+    <div class="card-header" style="margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;">
+        <h3 class="card-title">My Tickets</h3>
+        <a href="{{ path('app_ticket_create') }}" class="btn btn-primary" style="font-size: 0.875rem; text-decoration: none; font-weight: 600;">+ New Ticket</a>
+    </div>
+
+    <div class="table-container">
+        <table class="styled-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Subject</th>
+                    <th>Category</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ticket in tickets %}
+                    <tr>
+                        <td>#{{ ticket.id }}</td>
+                        <td>{{ ticket.title }}</td>
+                        <td>{{ ticket.category.label|default('-') }}</td>
+                        <td>{{ ticket.createdAt|date('M d, Y') }}</td>
+                        <td>
+                            {% set statusLabel = ticket.status.label|default('Unknown') %}
+                            <span class="status-badge {{ statusLabel in ['Ouvert', 'En cours'] ? 'status-open' : 'status-closed' }}">
+                                {{ statusLabel }}
+                            </span>
+                        </td>
+                        <td>
+                            <a href="{{ path('app_ticket_show', {id: ticket.id}) }}" style="color: #3B82F6;">View</a>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="6" style="text-align:center;">You have not created any tickets yet.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

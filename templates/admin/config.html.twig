@@ -1,0 +1,152 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}System Configuration{% endblock %}
+
+{% block body %}
+<div class="card" style="margin-bottom: 2rem;">
+    <div class="card-header">
+        <h3 class="card-title">Categories</h3>
+    </div>
+    <div style="padding: 1.5rem;">
+        <form method="post" action="{{ path('app_admin_config') }}" class="form-stack" style="margin-bottom: 1rem;">
+            <input type="hidden" name="_token" value="{{ csrf_token('admin_config') }}">
+            <input type="hidden" name="action" value="add_category">
+            <div class="form-row">
+                <div class="form-group" style="flex: 1;">
+                    <label class="label">New Category</label>
+                    <input type="text" name="label" class="input" placeholder="e.g. Hardware" required>
+                </div>
+                <div class="form-group" style="align-self: flex-end;">
+                    <button type="submit" class="btn btn-primary">Add</button>
+                </div>
+            </div>
+        </form>
+
+        <div class="table-container">
+            <table class="styled-table">
+                <thead>
+                    <tr>
+                        <th>Label</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for category in categories %}
+                        <tr>
+                            <td>{{ category.label }}</td>
+                            <td>
+                                <form method="post" action="{{ path('app_admin_category_delete', {id: category.id}) }}">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete_category_' ~ category.id) }}">
+                                    <button class="btn btn-secondary" type="submit">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr><td colspan="2">No categories found.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="card" style="margin-bottom: 2rem;">
+    <div class="card-header">
+        <h3 class="card-title">Priorities</h3>
+    </div>
+    <div style="padding: 1.5rem;">
+        <form method="post" action="{{ path('app_admin_config') }}" class="form-stack" style="margin-bottom: 1rem;">
+            <input type="hidden" name="_token" value="{{ csrf_token('admin_config') }}">
+            <input type="hidden" name="action" value="add_priority">
+            <div class="form-row">
+                <div class="form-group" style="flex: 2;">
+                    <label class="label">New Priority</label>
+                    <input type="text" name="label" class="input" placeholder="e.g. P2 - High" required>
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label class="label">Level</label>
+                    <input type="number" name="level" class="input" min="1" max="10" required>
+                </div>
+                <div class="form-group" style="align-self: flex-end;">
+                    <button type="submit" class="btn btn-primary">Add</button>
+                </div>
+            </div>
+        </form>
+
+        <div class="table-container">
+            <table class="styled-table">
+                <thead>
+                    <tr>
+                        <th>Label</th>
+                        <th>Level</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for priority in priorities %}
+                        <tr>
+                            <td>{{ priority.label }}</td>
+                            <td>{{ priority.level }}</td>
+                            <td>
+                                <form method="post" action="{{ path('app_admin_priority_delete', {id: priority.id}) }}">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete_priority_' ~ priority.id) }}">
+                                    <button class="btn btn-secondary" type="submit">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr><td colspan="3">No priorities found.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">Statuses</h3>
+    </div>
+    <div style="padding: 1.5rem;">
+        <form method="post" action="{{ path('app_admin_config') }}" class="form-stack" style="margin-bottom: 1rem;">
+            <input type="hidden" name="_token" value="{{ csrf_token('admin_config') }}">
+            <input type="hidden" name="action" value="add_status">
+            <div class="form-row">
+                <div class="form-group" style="flex: 1;">
+                    <label class="label">New Status</label>
+                    <input type="text" name="label" class="input" placeholder="e.g. En cours" required>
+                </div>
+                <div class="form-group" style="align-self: flex-end;">
+                    <button type="submit" class="btn btn-primary">Add</button>
+                </div>
+            </div>
+        </form>
+
+        <div class="table-container">
+            <table class="styled-table">
+                <thead>
+                    <tr>
+                        <th>Label</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for status in statuses %}
+                        <tr>
+                            <td>{{ status.label }}</td>
+                            <td>
+                                <form method="post" action="{{ path('app_admin_status_delete', {id: status.id}) }}">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete_status_' ~ status.id) }}">
+                                    <button class="btn btn-secondary" type="submit">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr><td colspan="2">No statuses found.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

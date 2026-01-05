@@ -1,111 +1,51 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Genesys Helpdesk | Create Ticket</title>
-    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
-</head>
-<body>
-    <div class="app-container">
-      
-      {{ include('partials/_sidebar.html.twig') }}
+{% extends 'base.html.twig' %}
 
-        <main class="main-content">
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">Create New Ticket</h3>
-                    <p class="card-subtitle">Fill in the details below to raise a new support ticket.</p>
-                </div>
+{% block title %}Create Ticket{% endblock %}
 
-                <form action="/submit-ticket" method="POST" class="form-stack">
-                    <input type="hidden" name="id_ticket" value="">
-                    <input type="hidden" name="id_user" value="CURRENT_USER_ID">
-
-                    <div class="form-group">
-                        <label class="label">Ticket Title</label>
-                        <input type="text" name="titre" required placeholder="Brief summary of the issue" class="input">
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="label">Type</label>
-                            <select name="type" class="select">
-                                <option value="incident">Incident</option>
-                                <option value="request">Service Request</option>
-                                <option value="bug">Bug Report</option>
-                                <option value="access">Access Request</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label class="label">Category</label>
-                            <input type="text" name="category" placeholder="e.g. Network, Hardware, Software" class="input">
-                        </div>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="label">Urgency</label>
-                            <select name="Urgency" class="select">
-                                <option value="low">Low</option>
-                                <option value="medium">Medium</option>
-                                <option value="high">High</option>
-                                <option value="critical">Critical</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label class="label">Priority</label>
-                            <select name="priority" class="select">
-                                <option value="p3">P3 - Normal</option>
-                                <option value="p2">P2 - High</option>
-                                <option value="p1">P1 - Urgent</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="label">Description</label>
-                        <textarea name="Description" rows="4" required placeholder="Detailed description of the problem..." class="textarea"></textarea>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="label">Watchers / Viewers</label>
-                            <input type="text" name="watcher" placeholder="email1@genesys.com, email2..." class="input">
-                        </div>
-                        <div class="form-group">
-                            <label class="label">Date Creation</label>
-                            <input type="date" name="date_creation" class="input">
-                        </div>
-                    </div>
-
-
-
-<div class="form-group">
-        <label class="label">Attachment</label>
-        <div class="upload-area">
-            <div class="upload-content">
-                <svg class="upload-icon" stroke="currentColor" fill="none" viewBox="0 0 48 48">
-                    <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                </svg>
-                <div class="upload-text">
-                    <span class="upload-link">Click to upload document</span>
-                </div>
-                <p class="upload-hint">PDF, PNG, JPG or LOG up to 10MB</p>
-            </div>
-            <input type="file" name="chemin_fichier" class="file-input">
+{% block body %}
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Create New Ticket</h3>
+            <p class="card-subtitle">Fill in the details below to raise a new support ticket.</p>
         </div>
-    </div>
 
-    
-                    <div class="btn-group">
-                        <button type="reset" class="btn btn-reset">Reset</button>
-                        <button type="submit" class="btn btn-submit">Create Ticket</button>
-                    </div>
-                </form>
+        {{ form_start(form, {'attr': {'class': 'form-stack'}}) }}
+            
+            <div class="form-group">
+                {{ form_label(form.title, 'Ticket Title', {'label_attr': {'class': 'label'}}) }}
+                {{ form_widget(form.title, {'attr': {'class': 'input', 'placeholder': 'Brief summary of the issue'}}) }}
+                {{ form_errors(form.title) }}
             </div>
-        </main>
+
+            <div class="form-row">
+                <div class="form-group">
+                    {{ form_label(form.category, 'Category', {'label_attr': {'class': 'label'}}) }}
+                    {{ form_widget(form.category, {'attr': {'class': 'select'}}) }}
+                    {{ form_errors(form.category) }}
+                </div>
+                <div class="form-group">
+                    {{ form_label(form.priority, 'Priority', {'label_attr': {'class': 'label'}}) }}
+                    {{ form_widget(form.priority, {'attr': {'class': 'select'}}) }}
+                    {{ form_errors(form.priority) }}
+                </div>
+            </div>
+
+            <div class="form-group">
+                {{ form_label(form.description, 'Description', {'label_attr': {'class': 'label'}}) }}
+                {{ form_widget(form.description, {'attr': {'class': 'textarea', 'rows': '4', 'placeholder': 'Detailed description of the problem...'}}) }}
+                {{ form_errors(form.description) }}
+            </div>
+
+            <div class="form-group">
+                {{ form_label(form.attachments, 'Attachments', {'label_attr': {'class': 'label'}}) }}
+                {{ form_widget(form.attachments, {'attr': {'class': 'input'}}) }}
+                {{ form_errors(form.attachments) }}
+            </div>
+
+            <div class="btn-group">
+                <button type="reset" class="btn btn-reset">Reset</button>
+                <button type="submit" class="btn btn-submit">Create Ticket</button>
+            </div>
+        {{ form_end(form) }}
     </div>
-    <script>document.querySelector('input[name="date_creation"]').valueAsDate = new Date();</script>
-</body>
-</html>
+{% endblock %}

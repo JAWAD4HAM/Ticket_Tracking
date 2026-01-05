@@ -1,0 +1,178 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Ticket #{{ ticket.id }}{% endblock %}
+
+{% block body %}
+<div class="card">
+    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+        <h3 class="card-title">
+            <span style="color: #64748B;">#{{ ticket.id }}</span> {{ ticket.title }}
+        </h3>
+        {% set statusLabel = ticket.status.label|default('Unknown') %}
+        <span class="status-badge {{ statusLabel in ['Ouvert', 'En cours'] ? 'status-open' : 'status-closed' }}">
+            {{ statusLabel }}
+        </span>
+    </div>
+
+    <div style="padding: 1.5rem; border-bottom: 1px solid #E2E8F0;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem;">
+            <div>
+                <label style="font-size: 0.75rem; color: #64748B; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">Category</label>
+                <div style="font-weight: 500; color: #0F172A;">{{ ticket.category.label|default('-') }}</div>
+            </div>
+            <div>
+                <label style="font-size: 0.75rem; color: #64748B; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">Priority</label>
+                <div style="font-weight: 500; color: #0F172A;">{{ ticket.priority.label|default('-') }}</div>
+            </div>
+             <div>
+                <label style="font-size: 0.75rem; color: #64748B; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">Created By</label>
+                <div style="font-weight: 500; color: #0F172A;">{{ ticket.creator.name|default('Unknown') }}</div>
+            </div>
+            <div>
+                <label style="font-size: 0.75rem; color: #64748B; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">Assigned To</label>
+                <div style="font-weight: 500; color: #0F172A;">
+                    {% if ticket.assignee %}
+                        {{ ticket.assignee.name }}
+                    {% else %}
+                        <span style="color: #94A3B8; font-style: italic;">Unassigned</span>
+                        {% if is_granted('ROLE_TECH') %}
+                            <form method="post" action="{{ path('app_ticket_pickup', {id: ticket.id}) }}" style="display: inline;">
+                                <input type="hidden" name="_token" value="{{ csrf_token('ticket_pickup_' ~ ticket.id) }}">
+                                <button type="submit" style="margin-left: 0.5rem; font-size: 0.875rem; color: #3B82F6; background: none; border: none; padding: 0; cursor: pointer;">Take it</button>
+                            </form>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+            <div>
+                <label style="font-size: 0.75rem; color: #64748B; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">Created</label>
+                <div style="font-weight: 500; color: #0F172A;">{{ ticket.createdAt ? ticket.createdAt|date('Y-m-d H:i') : '-' }}</div>
+            </div>
+            <div>
+                <label style="font-size: 0.75rem; color: #64748B; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">SLA Due</label>
+                <div style="font-weight: 500; color: #0F172A;">
+                    {% if ticket.slaDueAt %}
+                        {{ ticket.slaDueAt|date('Y-m-d H:i') }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <label style="font-size: 0.75rem; color: #64748B; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; display: block; margin-bottom: 0.5rem;">Description</label>
+            <div style="background: #F8FAFC; padding: 1rem; border-radius: 0.5rem; color: #334155; line-height: 1.6;">
+                {{ ticket.description|nl2br }}
+            </div>
+        </div>
+
+        <div style="margin-top: 1.5rem;">
+            <label style="font-size: 0.75rem; color: #64748B; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; display: block; margin-bottom: 0.5rem;">Attachments</label>
+            {% if attachments|length %}
+                <ul style="list-style: none; padding: 0; margin: 0;">
+                    {% for attachment in attachments %}
+                        <li style="margin-bottom: 0.5rem;">
+                            <a href="{{ asset(attachment.filePath) }}" style="color: #3B82F6; text-decoration: none;">
+                                <i class="fa-solid fa-paperclip" style="margin-right: 0.25rem;"></i>
+                                {{ attachment.filePath|split('/')|last }}
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <div style="color: #94A3B8; font-style: italic;">No attachments.</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div style="padding: 1.5rem;">
+        <div style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
+            <h4 style="font-size: 1rem;">Activity</h4>
+            <div style="display: flex; flex-wrap: wrap; gap: 1rem;">
+                {% if is_granted('ROLE_TECH') %}
+                    <form method="post" action="{{ path('app_ticket_status', {id: ticket.id}) }}" class="form-inline">
+                        <input type="hidden" name="_token" value="{{ csrf_token('ticket_status_' ~ ticket.id) }}">
+                        <select name="status_id" class="select" style="min-width: 180px;">
+                            {% for status in statuses %}
+                                <option value="{{ status.id }}" {% if ticket.status and ticket.status.id == status.id %}selected{% endif %}>
+                                    {{ status.label }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                        <button class="btn btn-primary" type="submit">Update Status</button>
+                    </form>
+                {% endif %}
+
+                {% if is_granted('ROLE_MANAGER') %}
+                    <form method="post" action="{{ path('app_ticket_assign', {id: ticket.id}) }}" class="form-inline">
+                        <input type="hidden" name="_token" value="{{ csrf_token('ticket_assign_' ~ ticket.id) }}">
+                        <select name="assignee_id" class="select" style="min-width: 180px;">
+                            <option value="">Unassigned</option>
+                            {% for agent in assignable_users %}
+                                <option value="{{ agent.id }}" {% if ticket.assignee and ticket.assignee.id == agent.id %}selected{% endif %}>
+                                    {{ agent.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                        <button class="btn btn-secondary" type="submit">Assign</button>
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if comments|length %}
+            <div style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 2rem;">
+                {% for comment in comments %}
+                    <div style="border: 1px solid #E2E8F0; border-radius: 0.5rem; padding: 1rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                            <div style="font-weight: 600; color: #0F172A;">
+                                {{ comment.user.name|default('System') }}
+                            </div>
+                            <div style="font-size: 0.75rem; color: #94A3B8;">
+                                {{ comment.createdAt ? comment.createdAt|date('Y-m-d H:i') : '' }}
+                            </div>
+                        </div>
+                        {% if comment.isInternal %}
+                            <span class="status-badge status-closed" style="margin-bottom: 0.5rem; display: inline-block;">Internal note</span>
+                        {% endif %}
+                        <div style="color: #334155; line-height: 1.6;">
+                            {{ comment.content|nl2br }}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p style="color: #94A3B8; font-style: italic; margin-bottom: 2rem;">No comments yet.</p>
+        {% endif %}
+
+        <div style="margin-bottom: 2rem;">
+            {{ form_start(comment_form, {'attr': {'class': 'form-stack'}}) }}
+                <div class="form-group">
+                    {{ form_label(comment_form.content, 'Add a reply', {'label_attr': {'class': 'label'}}) }}
+                    {{ form_widget(comment_form.content, {'attr': {'class': 'textarea', 'rows': 4}}) }}
+                    {{ form_errors(comment_form.content) }}
+                </div>
+                {% if comment_form.isInternal is defined %}
+                    <div class="form-group">
+                        {{ form_row(comment_form.isInternal) }}
+                    </div>
+                {% endif %}
+                <div class="btn-group">
+                    <button type="submit" class="btn btn-submit">Post Comment</button>
+                </div>
+            {{ form_end(comment_form) }}
+        </div>
+
+        <div style="margin-top: 2rem; display: flex; gap: 1rem;">
+            <a href="{{ path('app_dashboard') }}" class="btn btn-secondary" style="text-decoration: none; padding: 0.5rem 1rem; background: #E2E8F0; color: #475569; border-radius: 0.375rem;">Back</a>
+            {% if is_granted('ROLE_TECH') and not ticket.assignee %}
+                <form method="post" action="{{ path('app_ticket_pickup', {id: ticket.id}) }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('ticket_pickup_' ~ ticket.id) }}">
+                    <button type="submit" class="btn btn-primary">Pick Up Ticket</button>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

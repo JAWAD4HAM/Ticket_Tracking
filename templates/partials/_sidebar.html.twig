@@ -1,3 +1,4 @@
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <nav class="sidebar">
     <div class="brand">Genesys Helpdesk</div>
     <ul class="nav-menu">
@@ -5,43 +6,66 @@
 
         <li>
             <a href="{{ path('app_dashboard') }}" class="nav-link {{ app.request.attributes.get('_route') == 'app_dashboard' ? 'active' : '' }}">
-                Dashboard
+                <i class="fa-solid fa-chart-line sidebar-icon"></i> Dashboard
             </a>
         </li>
 
-
+        {% if is_granted('ROLE_USER') %}
         <li>
             <a href="{{ path('app_ticket_create') }}" class="nav-link {{ app.request.attributes.get('_route') == 'app_ticket_create' ? 'active' : '' }}">
-                Create Ticket
+                <i class="fa-solid fa-circle-plus sidebar-icon"></i> Create Ticket
             </a>
         </li>
+        {% endif %}
 
+        {% if is_granted('ROLE_TECH') %}
         <li>
             <a href="{{ path('app_ticket') }}" class="nav-link {{ app.request.attributes.get('_route') == 'app_ticket' ? 'active' : '' }}">
-                Tickets
+                <i class="fa-solid fa-layer-group sidebar-icon"></i> All Tickets
+            </a>
+        </li>
+        {% endif %}
+
+        {% if is_granted('ROLE_ADMIN') %}
+        <li>
+            <a href="{{ path('app_user_create') }}" class="nav-link {{ app.request.attributes.get('_route') == 'app_user_create' ? 'active' : '' }}">
+                <i class="fa-solid fa-user-plus sidebar-icon"></i> Create User
+            </a>
+        </li>
+        <li>
+            <a href="{{ path('app_admin_users') }}" class="nav-link {{ app.request.attributes.get('_route') == 'app_admin_users' ? 'active' : '' }}">
+              <i class="fa-solid fa-users-gear sidebar-icon"></i> Users
+            </a>
+        </li>
+        <li>
+            <a href="{{ path('app_admin_config') }}" class="nav-link {{ app.request.attributes.get('_route') == 'app_admin_config' ? 'active' : '' }}">
+              <i class="fa-solid fa-sliders sidebar-icon"></i> Configuration
+            </a>
+        </li>
+        {% endif %}
+
+        <li style="margin-top: auto;">
+             <div style="padding: 0.5rem 1rem; color: #94A3B8; font-size: 0.75rem;">
+                 <div style="font-weight: 600; color: #CBD5E1;">{{ app.user.name|default('Guest') }}</div>
+                 <div style="font-size: 0.7rem;">
+                    {% if is_granted('ROLE_ADMIN') %}Administrator
+                    {% elseif is_granted('ROLE_MANAGER') %}Manager
+                    {% elseif is_granted('ROLE_TECH') %}Technician
+                    {% else %}User{% endif %}
+                 </div>
+             </div>
+             <a href="{{ path('app_logout') }}" class="nav-link">
+                <i class="fa-solid fa-right-from-bracket sidebar-icon"></i> Logout
             </a>
         </li>
 
-        <li>
-            <a href="{{ path('app_agents') }}" class="nav-link {{ app.request.attributes.get('_route') == 'app_agents' ? 'active' : '' }}">
-                Register Agent
-            </a>
-        </li>
-        <li>
-            <a href="{{ path('app_user_create') }}" class="nav-link {{ app.request.attributes.get('_route') == 'app_user_create' ? 'active' : '' }}">
-                Create User
-            </a>
-        </li>
-        <li>
-            <a href="{{ path('app_ticket_assign') }}" class="nav-link {{ app.request.attributes.get('_route') == 'app_ticket_assign' ? 'active' : '' }}">
-                Assign Ticket
-            </a>
-        </li>
-        <li>
-            <a href="{{ path('app_settings') }}" class="nav-link {{ app.request.attributes.get('_route') == 'app_settings' ? 'active' : '' }}">
-                Settings
-            </a>
-        </li>
        
+
+   <li>
+            <a href="{{ path('app_settings') }}" class="nav-link {{ app.request.attributes.get('_route') == 'app_settings' ? 'active' : '' }}">
+                <i class="fa-solid fa-gear sidebar-icon"></i> Settings
+            </a>
+        </li>
+
     </ul>
 </nav>

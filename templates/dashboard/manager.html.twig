@@ -1,0 +1,104 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Manager Dashboard{% endblock %}
+
+{% block body %}
+<div style="margin-bottom: 2rem;">
+    <h2>Manager Overview</h2>
+    <div class="dashboard-grid">
+        <div class="stat-card">
+            <div class="stat-icon bg-blue-soft">📊</div>
+            <div class="stat-info">
+                <h4>Total Tickets</h4>
+                <span>{{ stats.total }}</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon bg-emerald-soft">✅</div>
+            <div class="stat-info">
+                <h4>Open Tickets</h4>
+                <span>{{ stats.open }}</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon bg-orange-soft">⏳</div>
+            <div class="stat-info">
+                <h4>Unassigned</h4>
+                <span>{{ stats.unassigned }}</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon bg-purple-soft">⏱️</div>
+            <div class="stat-info">
+                <h4>Avg Resolution (hrs)</h4>
+                <span>{{ stats.avg_resolution_hours is not null ? stats.avg_resolution_hours : '-' }}</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card" style="margin-bottom: 2rem;">
+    <div class="card-header">
+        <h3 class="card-title">Workload by Technician</h3>
+    </div>
+    <div class="table-container">
+        <table class="styled-table">
+            <thead>
+                <tr>
+                    <th>Technician</th>
+                    <th>Assigned Tickets</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in stats.tickets_per_tech %}
+                    <tr>
+                        <td>{{ row.name }}</td>
+                        <td>{{ row.total }}</td>
+                    </tr>
+                {% else %}
+                    <tr><td colspan="2">No assigned tickets yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">All Recent Tickets</h3>
+    </div>
+    <div class="table-container">
+        <table class="styled-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Subject</th>
+                    <th>Creator</th>
+                    <th>Assignee</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ticket in recent_tickets %}
+                    <tr>
+                        <td>#{{ ticket.id }}</td>
+                        <td>{{ ticket.title }}</td>
+                        <td>{{ ticket.creator.name|default('Unknown') }}</td>
+                        <td>{{ ticket.assignee.name|default('Unassigned') }}</td>
+                        <td>
+                            {% set statusLabel = ticket.status.label|default('Unknown') %}
+                            <span class="status-badge {{ statusLabel in ['Ouvert', 'En cours'] ? 'status-open' : 'status-closed' }}">
+                                {{ statusLabel }}
+                            </span>
+                        </td>
+                        <td>{{ ticket.createdAt|date('Y-m-d H:i') }}</td>
+                    </tr>
+                {% else %}
+                    <tr><td colspan="6">No tickets found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -103,9 +103,9 @@ body {
     /* Push content right */
     padding: 3rem;
     display: flex;
-    justify-content: center;
+    flex-direction: column;
     align-items: flex-start;
-    /* Aligns card to top */
+    gap: 2rem;
 }
 
 /* 4. Card Component (No changes needed, just fits inside main-content) */
@@ -115,8 +115,12 @@ body {
     border-radius: 1.5rem;
     border: 1px solid #F1F5F9;
     width: 100%;
-    max-width: 42rem;
+    max-width: 100%;
     box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+}
+.main-content > * {
+    width: 100%;
+    max-width: 1200px;
 }
 
 .card-header {
@@ -414,6 +418,7 @@ body {
 /* Recent Activity Table */
 .table-container {
     overflow-x: auto;
+    width: 100%;
 }
 
 .styled-table {
@@ -452,4 +457,48 @@ body {
 .status-closed {
     background: #ECFDF5;
     color: #065F46;
+}
+
+.form-inline {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    color: #FFFFFF;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-hover);
+}
+
+.btn-secondary {
+    background-color: #E2E8F0;
+    color: #475569;
+}
+
+.btn-secondary:hover {
+    background-color: #CBD5E1;
+}
+
+@media (max-width: 1024px) {
+    .app-container {
+        flex-direction: column;
+    }
+
+    .sidebar {
+        position: static;
+        width: 100%;
+        height: auto;
+    }
+
+    .main-content {
+        margin-left: 0;
+        padding: 1.5rem;
+        align-items: stretch;
+    }
 }
