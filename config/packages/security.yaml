@@ -55,6 +55,11 @@ security:
         - { path: ^/ticket/\d+/status, roles: ROLE_TECH }
         - { path: ^/ticket/\d+/assign, roles: ROLE_MANAGER }
         - { path: ^/ticket/\d+/comment, roles: ROLE_USER }
+        - { path: ^/ticket/\d+/delete, roles: ROLE_USER }
+        - { path: ^/ticket/\d+/restore, roles: ROLE_USER }
+        - { path: ^/ticket/\d+/delete-permanent, roles: ROLE_USER }
+        - { path: ^/ticket/trash/restore, roles: ROLE_USER }
+        - { path: ^/ticket/trash/empty, roles: ROLE_USER }
         - { path: ^/ticket/\d+$, roles: ROLE_USER }
         - { path: ^/ticket$, roles: ROLE_TECH }
 

@@ -1,19 +1,76 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}All Tickets{% endblock %}
+{% block title %}{{ 'All Tickets'|trans }}{% endblock %}
 
 {% block body %}
+    <div class="card" style="margin-bottom: 1.5rem;">
+        <div class="card-header" style="margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;">
+            <h3 class="card-title">{{ 'Trash Bin'|trans }}</h3>
+            <div style="display: flex; gap: 0.5rem;">
+                <form method="post" action="{{ path('app_ticket_restore_all') }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('ticket_restore_all') }}">
+                    <button type="submit" class="btn btn-secondary">{{ 'Restore All'|trans }}</button>
+                </form>
+                <form method="post" action="{{ path('app_ticket_empty_trash') }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('ticket_empty_trash') }}">
+                    <button type="submit" class="btn" style="background: #DC2626; color: #fff;">{{ 'Empty Trash'|trans }}</button>
+                </form>
+            </div>
+        </div>
+        <div class="table-container">
+            <table class="styled-table">
+                <thead>
+                    <tr>
+                        <th>{{ 'Ticket ID'|trans }}</th>
+                        <th>{{ 'Subject'|trans }}</th>
+                        <th>{{ 'Creator'|trans }}</th>
+                        <th>{{ 'Deleted At'|trans }}</th>
+                        <th>{{ 'Action'|trans }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ticket in deleted_tickets %}
+                        <tr>
+                            <td>#{{ ticket.id }}</td>
+                            <td>{{ ticket.title }}</td>
+                            <td>{{ ticket.creator ? ticket.creator.name : ('Unknown'|trans) }}</td>
+                            <td>{{ ticket.deletedAt ? ticket.deletedAt|date('M d, Y H:i') : '-' }}</td>
+                            <td>
+                                <a href="{{ path('app_ticket_show', {id: ticket.id}) }}" style="color: #3B82F6;">{{ 'View'|trans }}</a>
+                                {% set can_restore = is_granted('ROLE_ADMIN') or (ticket.creator and app.user and ticket.creator.id == app.user.id) %}
+                                {% if can_restore %}
+                                    <form method="post" action="{{ path('app_ticket_restore', {id: ticket.id}) }}" style="display: inline;">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('ticket_restore_' ~ ticket.id) }}">
+                                        <button type="submit" style="margin-left: 0.5rem; color: #16A34A; background: none; border: none; padding: 0; cursor: pointer;">{{ 'Restore'|trans }}</button>
+                                    </form>
+                                    <form method="post" action="{{ path('app_ticket_delete_permanent', {id: ticket.id}) }}" style="display: inline;">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('ticket_delete_permanent_' ~ ticket.id) }}">
+                                        <button type="submit" style="margin-left: 0.5rem; color: #DC2626; background: none; border: none; padding: 0; cursor: pointer;">{{ 'Delete Permanently'|trans }}</button>
+                                    </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="5">{{ 'Trash is empty.'|trans }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
     <div class="card">
         <div class="card-header" style="margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;">
-            <h3 class="card-title">All Tickets</h3>
+            <h3 class="card-title">{{ 'All Tickets'|trans }}</h3>
              {% if is_granted('ROLE_USER') and not is_granted('ROLE_TECH') %}
-                <a href="{{ path('app_ticket_create') }}" style="font-size: 0.875rem; color: #3B82F6; text-decoration: none; font-weight: 600;">+ New Ticket</a>
+                <a href="{{ path('app_ticket_create') }}" style="font-size: 0.875rem; color: #3B82F6; text-decoration: none; font-weight: 600;">{{ '+ New Ticket'|trans }}</a>
             {% endif %}
         </div>
 
         <form method="get" action="{{ path('app_ticket') }}" style="margin-bottom: 1rem; display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center;">
             <select name="status" class="select" style="min-width: 160px;">
-                <option value="">All Statuses</option>
+                <option value="">{{ 'All Statuses'|trans }}</option>
                 {% for status in statuses %}
                     <option value="{{ status.label }}" {% if filters.status == status.label %}selected{% endif %}>
                         {{ status.label }}
@@ -21,7 +78,7 @@
                 {% endfor %}
             </select>
             <select name="priority" class="select" style="min-width: 160px;">
-                <option value="">All Priorities</option>
+                <option value="">{{ 'All Priorities'|trans }}</option>
                 {% for priority in priorities %}
                     <option value="{{ priority.id }}" {% if filters.priority == priority.id %}selected{% endif %}>
                         {{ priority.label }}
@@ -30,23 +87,23 @@
             </select>
             <input type="date" name="from" value="{{ filters.from }}" class="input" />
             <input type="date" name="to" value="{{ filters.to }}" class="input" />
-            <button class="btn btn-primary" type="submit">Filter</button>
-            <a class="btn btn-secondary" href="{{ path('app_ticket') }}" style="text-decoration: none;">Clear</a>
+            <button class="btn btn-primary" type="submit">{{ 'Filter'|trans }}</button>
+            <a class="btn btn-secondary" href="{{ path('app_ticket') }}" style="text-decoration: none;">{{ 'Clear'|trans }}</a>
         </form>
         
         <div class="table-container">
             <table class="styled-table">
                 <thead>
                     <tr>
-                        <th>Ticket ID</th>
-                        <th>Subject</th>
-                        <th>Creator</th>
-                        <th>Assignee</th>
-                        <th>Category</th>
-                        <th>Priority</th>
-                        <th>SLA</th>
-                        <th>Status</th>
-                        <th>Action</th>
+                        <th>{{ 'Ticket ID'|trans }}</th>
+                        <th>{{ 'Subject'|trans }}</th>
+                        <th>{{ 'Creator'|trans }}</th>
+                        <th>{{ 'Assignee'|trans }}</th>
+                        <th>{{ 'Category'|trans }}</th>
+                        <th>{{ 'Priority'|trans }}</th>
+                        <th>{{ 'SLA'|trans }}</th>
+                        <th>{{ 'Status'|trans }}</th>
+                        <th>{{ 'Action'|trans }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -54,7 +111,7 @@
                         <tr>
                             <td>#{{ ticket.id }}</td>
                             <td>{{ ticket.title }}</td>
-                            <td>{{ ticket.creator ? ticket.creator.name : 'Unknown' }}</td>
+                            <td>{{ ticket.creator ? ticket.creator.name : ('Unknown'|trans) }}</td>
                             <td>{{ ticket.assignee ? ticket.assignee.name : '-' }}</td>
                             <td>{{ ticket.category ? ticket.category.label : '-' }}</td>
                             <td>{{ ticket.priority ? ticket.priority.label : '-' }}</td>
@@ -75,12 +132,19 @@
                                 </span>
                             </td>
                             <td>
-                                <a href="{{ path('app_ticket_show', {id: ticket.id}) }}" style="color: #3B82F6;">View</a>
+                                <a href="{{ path('app_ticket_show', {id: ticket.id}) }}" style="color: #3B82F6;">{{ 'View'|trans }}</a>
+                                {% set can_delete = is_granted('ROLE_ADMIN') or (ticket.creator and app.user and ticket.creator.id == app.user.id) %}
+                                {% if can_delete %}
+                                    <form method="post" action="{{ path('app_ticket_delete', {id: ticket.id}) }}" style="display: inline;">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('ticket_delete_' ~ ticket.id) }}">
+                                        <button type="submit" style="margin-left: 0.5rem; color: #DC2626; background: none; border: none; padding: 0; cursor: pointer;">{{ 'Delete'|trans }}</button>
+                                    </form>
+                                {% endif %}
                             </td>
                         </tr>
                     {% else %}
                         <tr>
-                            <td colspan="8">No tickets found.</td>
+                            <td colspan="9">{{ 'No tickets found.'|trans }}</td>
                         </tr>
                     {% endfor %}
                 </tbody>

@@ -1,57 +1,56 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Settings{% endblock %}
+{% block title %}{{ 'Settings'|trans }}{% endblock %}
 
 {% block body %}
     <div class="card">
         <div class="card-header">
-            <h3 class="card-title">Settings</h3>
-            <p class="card-subtitle">Manage your application preferences</p>
+            <h3 class="card-title">{{ 'Settings'|trans }}</h3>
+            <p class="card-subtitle">{{ 'Manage your application preferences'|trans }}</p>
         </div>
 
         <div class="card-body">
             <form class="form-stack" method="post" action="{{ path('app_settings') }}">
                 <input type="hidden" name="_token" value="{{ csrf_token('settings_update') }}">
                 <div class="form-group">
-                    <h4 class="section-title">Profile Settings</h4>
+                    <h4 class="section-title">{{ 'Profile Settings'|trans }}</h4>
                     <div class="form-row">
                         <div class="form-group">
-                            <label class="label">Display Name</label>
-                            <input type="text" name="display_name" class="input" value="{{ app.user.name|default('User') }}">
+                            <label class="label">{{ 'Display Name'|trans }}</label>
+                            <input type="text" name="display_name" class="input" value="{{ app.user.name|default('User'|trans) }}">
                         </div>
                         <div class="form-group">
-                            <label class="label">Email</label>
+                            <label class="label">{{ 'Email'|trans }}</label>
                             <input type="email" class="input" value="{{ app.user.email }}" disabled>
                         </div>
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <h4 class="section-title">Notifications</h4>
-                    <div class="checkbox-group">
-                        <label class="checkbox-label" style="display: flex; align-items: center; gap: 0.5rem;">
-                            <input type="checkbox" name="notify_email" {% if app.user.notifyEmail %}checked{% endif %}> Email Notifications
-                        </label>
-                        <label class="checkbox-label" style="display: flex; align-items: center; gap: 0.5rem;">
-                            <input type="checkbox" name="notify_desktop" {% if app.user.notifyDesktop %}checked{% endif %}> Desktop Notifications
-                        </label>
+                    <h4 class="section-title">{{ 'Appearance'|trans }}</h4>
+                    <div class="form-group">
+                        <label class="label">{{ 'Theme'|trans }}</label>
+                        <select class="select" name="theme" data-controller="theme" data-action="change->theme#apply">
+                            <option value="light" {% if app.user.theme == 'light' %}selected{% endif %}>{{ 'Light'|trans }}</option>
+                            <option value="dark" {% if app.user.theme == 'dark' %}selected{% endif %}>{{ 'Dark'|trans }}</option>
+                            <option value="system" {% if app.user.theme == 'system' %}selected{% endif %}>{{ 'System Default'|trans }}</option>
+                        </select>
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <h4 class="section-title">Appearance</h4>
+                    <h4 class="section-title">{{ 'Language'|trans }}</h4>
                     <div class="form-group">
-                        <label class="label">Theme</label>
-                        <select class="select" name="theme">
-                            <option value="light" {% if app.user.theme == 'light' %}selected{% endif %}>Light</option>
-                            <option value="dark" {% if app.user.theme == 'dark' %}selected{% endif %}>Dark</option>
-                            <option value="system" {% if app.user.theme == 'system' %}selected{% endif %}>System Default</option>
+                        <label class="label">{{ 'Language'|trans }}</label>
+                        <select class="select" name="locale">
+                            <option value="en" {% if app.user.locale == 'en' %}selected{% endif %}>{{ 'English'|trans }}</option>
+                            <option value="fr" {% if app.user.locale == 'fr' %}selected{% endif %}>{{ 'French'|trans }}</option>
                         </select>
                     </div>
                 </div>
 
                 <div class="btn-group">
-                    <button type="submit" class="btn btn-submit">Save Changes</button>
+                    <button type="submit" class="btn btn-submit">{{ 'Save Changes'|trans }}</button>
                 </div>
             </form>
         </div>

@@ -1,24 +1,24 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Tech Dashboard{% endblock %}
+{% block title %}{{ 'Tech Dashboard'|trans }}{% endblock %}
 
 {% block body %}
 <div class="dashboard-grid">
     <!-- Unassigned Tickets Queue -->
     <div class="card">
         <div class="card-header">
-            <h3 class="card-title">Unassigned / New</h3>
+            <h3 class="card-title">{{ 'Unassigned / New'|trans }}</h3>
         </div>
         <div class="table-container">
             <table class="styled-table">
                 <thead>
                     <tr>
-                        <th>ID</th>
-                        <th>Subject</th>
-                        <th>Priority</th>
-                        <th>SLA</th>
-                        <th>Date</th>
-                        <th>Action</th>
+                        <th>{{ 'ID'|trans }}</th>
+                        <th>{{ 'Subject'|trans }}</th>
+                        <th>{{ 'Priority'|trans }}</th>
+                        <th>{{ 'SLA'|trans }}</th>
+                        <th>{{ 'Date'|trans }}</th>
+                        <th>{{ 'Action'|trans }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -41,12 +41,19 @@
                             <td>
                                 <form method="post" action="{{ path('app_ticket_pickup', {id: ticket.id}) }}" style="display: inline;">
                                     <input type="hidden" name="_token" value="{{ csrf_token('ticket_pickup_' ~ ticket.id) }}">
-                                    <button type="submit" style="color: #3B82F6; background: none; border: none; padding: 0; cursor: pointer;">Pick Up</button>
+                                    <button type="submit" style="color: #3B82F6; background: none; border: none; padding: 0; cursor: pointer;">{{ 'Pick Up'|trans }}</button>
                                 </form>
+                                {% set can_delete = is_granted('ROLE_ADMIN') or (ticket.creator and app.user and ticket.creator.id == app.user.id) %}
+                                {% if can_delete %}
+                                    <form method="post" action="{{ path('app_ticket_delete', {id: ticket.id}) }}" style="display: inline;">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('ticket_delete_' ~ ticket.id) }}">
+                                        <button type="submit" style="margin-left: 0.5rem; color: #DC2626; background: none; border: none; padding: 0; cursor: pointer;">{{ 'Delete'|trans }}</button>
+                                    </form>
+                                {% endif %}
                             </td>
                         </tr>
                     {% else %}
-                        <tr><td colspan="6">No pending tickets.</td></tr>
+                        <tr><td colspan="6">{{ 'No pending tickets.'|trans }}</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
@@ -56,17 +63,17 @@
     <!-- Assigned to Me -->
     <div class="card">
         <div class="card-header">
-            <h3 class="card-title">Assigned to Me</h3>
+            <h3 class="card-title">{{ 'Assigned to Me'|trans }}</h3>
         </div>
         <div class="table-container">
             <table class="styled-table">
                 <thead>
                     <tr>
-                        <th>ID</th>
-                        <th>Subject</th>
-                        <th>SLA</th>
-                        <th>Status</th>
-                        <th>Action</th>
+                        <th>{{ 'ID'|trans }}</th>
+                        <th>{{ 'Subject'|trans }}</th>
+                        <th>{{ 'SLA'|trans }}</th>
+                        <th>{{ 'Status'|trans }}</th>
+                        <th>{{ 'Action'|trans }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -85,15 +92,24 @@
                                 {% endif %}
                             </td>
                             <td>
-                                {% set statusLabel = ticket.status.label|default('Unknown') %}
+                                {% set statusLabel = ticket.status.label|default('Unknown'|trans) %}
                                 <span class="status-badge {{ statusLabel in ['Ouvert', 'En cours'] ? 'status-open' : 'status-closed' }}">
                                     {{ statusLabel }}
                                 </span>
                             </td>
-                            <td><a href="{{ path('app_ticket_show', {id: ticket.id}) }}" style="color: #3B82F6;">Manage</a></td>
+                            <td>
+                                <a href="{{ path('app_ticket_show', {id: ticket.id}) }}" style="color: #3B82F6;">{{ 'Manage'|trans }}</a>
+                                {% set can_delete = is_granted('ROLE_ADMIN') or (ticket.creator and app.user and ticket.creator.id == app.user.id) %}
+                                {% if can_delete %}
+                                    <form method="post" action="{{ path('app_ticket_delete', {id: ticket.id}) }}" style="display: inline;">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('ticket_delete_' ~ ticket.id) }}">
+                                        <button type="submit" style="margin-left: 0.5rem; color: #DC2626; background: none; border: none; padding: 0; cursor: pointer;">{{ 'Delete'|trans }}</button>
+                                    </form>
+                                {% endif %}
+                            </td>
                         </tr>
                     {% else %}
-                        <tr><td colspan="5">No tickets assigned to you.</td></tr>
+                        <tr><td colspan="5">{{ 'No tickets assigned to you.'|trans }}</td></tr>
                     {% endfor %}
                 </tbody>
             </table>

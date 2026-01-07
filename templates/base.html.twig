@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ app.request.locale }}" data-theme="{{ app.user ? app.user.theme : 'system' }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Genesys Helpdesk{% endblock %}</title>
-    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+    <title>{% block title %}{{ 'Genesys Helpdesk'|trans }}{% endblock %}</title>
+    <link rel="stylesheet" href="{{ asset('css/style.css') }}?v={{ app.request.server.get('REQUEST_TIME') }}" data-turbo-track="reload">
     <!-- Font Awesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     {% block stylesheets %}{% endblock %}
@@ -15,37 +15,30 @@
         {{ include('partials/_sidebar.html.twig') }}
 
         <main class="main-content">
-            <!-- Flash Messages -->
-            {% for type, messages in app.flashes %}
-                {% for message in messages %}
-                    <div class="alert alert-{{ type }}" style="
-                        padding: 1rem; 
-                        border-radius: 0.5rem; 
-                        margin-bottom: 1.5rem;
-                        background-color: {{ type == 'success' ? '#D1FAE5' : (type == 'warning' ? '#FEF3C7' : '#FEE2E2') }};
-                        color: {{ type == 'success' ? '#065F46' : (type == 'warning' ? '#92400E' : '#B91C1C') }};
-                        border: 1px solid {{ type == 'success' ? '#34D399' : (type == 'warning' ? '#FCD34D' : '#FCA5A5') }};
-                    ">
-                        {{ message }}
-                    </div>
+            <turbo-frame id="main">
+                <!-- Flash Messages -->
+                {% for type, messages in app.flashes %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ type }}" data-controller="flash" data-flash-delay-value="5000" style="
+                            padding: 1rem; 
+                            border-radius: 0.5rem; 
+                            margin-bottom: 1.5rem;
+                            background-color: {{ type == 'success' ? '#D1FAE5' : (type == 'warning' ? '#FEF3C7' : '#FEE2E2') }};
+                            color: {{ type == 'success' ? '#065F46' : (type == 'warning' ? '#92400E' : '#B91C1C') }};
+                            border: 1px solid {{ type == 'success' ? '#34D399' : (type == 'warning' ? '#FCD34D' : '#FCA5A5') }};
+                        ">
+                        {{ message|trans }}
+                        </div>
+                    {% endfor %}
                 {% endfor %}
-            {% endfor %}
 
-            {% block body %}{% endblock %}
+                {% block body %}{% endblock %}
+            </turbo-frame>
         </main>
     </div>
 
     {% block javascripts %}
-        <script>
-            // Basic Auto-dismiss for alerts
-            setTimeout(() => {
-                const alerts = document.querySelectorAll('.alert');
-                alerts.forEach(alert => {
-                    alert.style.opacity = '0';
-                    setTimeout(() => alert.remove(), 500);
-                });
-            }, 5000);
-        </script>
+        {% block importmap %}{{ importmap('app') }}{% endblock %}
     {% endblock %}
 </body>
 </html>

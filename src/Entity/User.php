@@ -28,11 +28,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 50)]
     private ?string $role = null;
 
-    #[ORM\Column(name: 'notify_email', type: 'boolean', options: ['default' => true])]
-    private bool $notifyEmail = true;
-
-    #[ORM\Column(name: 'notify_desktop', type: 'boolean', options: ['default' => true])]
-    private bool $notifyDesktop = true;
+    #[ORM\Column(length: 5, options: ['default' => 'en'])]
+    private string $locale = 'en';
 
     #[ORM\Column(length: 20, options: ['default' => 'light'])]
     private string $theme = 'light';
@@ -112,26 +109,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getNotifyEmail(): bool
+    public function getLocale(): string
     {
-        return $this->notifyEmail;
+        return $this->locale;
     }
 
-    public function setNotifyEmail(bool $notifyEmail): static
+    public function setLocale(string $locale): static
     {
-        $this->notifyEmail = $notifyEmail;
-
-        return $this;
-    }
-
-    public function getNotifyDesktop(): bool
-    {
-        return $this->notifyDesktop;
-    }
-
-    public function setNotifyDesktop(bool $notifyDesktop): static
-    {
-        $this->notifyDesktop = $notifyDesktop;
+        $this->locale = $locale;
 
         return $this;
     }

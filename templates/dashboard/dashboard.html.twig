@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Genesys Helpdesk | Dashboard</title>
-    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/style.css') }}?v={{ app.request.server.get('REQUEST_TIME') }}">
 </head>
 <body>
     <div class="app-container">

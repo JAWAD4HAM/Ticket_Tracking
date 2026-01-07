@@ -1,24 +1,77 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Client Dashboard{% endblock %}
+{% block title %}{{ 'Client Dashboard'|trans }}{% endblock %}
 
 {% block body %}
+<div class="card" style="margin-bottom: 1.5rem;">
+    <div class="card-header" style="margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;">
+        <h3 class="card-title">{{ 'Trash Bin'|trans }}</h3>
+        <div style="display: flex; gap: 0.5rem;">
+            <form method="post" action="{{ path('app_ticket_restore_all') }}">
+                <input type="hidden" name="_token" value="{{ csrf_token('ticket_restore_all') }}">
+                <button type="submit" class="btn btn-secondary">{{ 'Restore All'|trans }}</button>
+            </form>
+            <form method="post" action="{{ path('app_ticket_empty_trash') }}">
+                <input type="hidden" name="_token" value="{{ csrf_token('ticket_empty_trash') }}">
+                <button type="submit" class="btn" style="background: #DC2626; color: #fff;">{{ 'Empty Trash'|trans }}</button>
+            </form>
+        </div>
+    </div>
+    <div class="table-container">
+        <table class="styled-table">
+            <thead>
+                <tr>
+                    <th>{{ 'ID'|trans }}</th>
+                    <th>{{ 'Subject'|trans }}</th>
+                    <th>{{ 'Category'|trans }}</th>
+                    <th>{{ 'Deleted At'|trans }}</th>
+                    <th>{{ 'Action'|trans }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ticket in deleted_tickets %}
+                    <tr>
+                        <td>#{{ ticket.id }}</td>
+                        <td>{{ ticket.title }}</td>
+                        <td>{{ ticket.category.label|default('-') }}</td>
+                        <td>{{ ticket.deletedAt ? ticket.deletedAt|date('M d, Y H:i') : '-' }}</td>
+                        <td>
+                            <a href="{{ path('app_ticket_show', {id: ticket.id}) }}" style="color: #3B82F6;">{{ 'View'|trans }}</a>
+                            <form method="post" action="{{ path('app_ticket_restore', {id: ticket.id}) }}" style="display: inline;">
+                                <input type="hidden" name="_token" value="{{ csrf_token('ticket_restore_' ~ ticket.id) }}">
+                                <button type="submit" style="margin-left: 0.5rem; color: #16A34A; background: none; border: none; padding: 0; cursor: pointer;">{{ 'Restore'|trans }}</button>
+                            </form>
+                            <form method="post" action="{{ path('app_ticket_delete_permanent', {id: ticket.id}) }}" style="display: inline;">
+                                <input type="hidden" name="_token" value="{{ csrf_token('ticket_delete_permanent_' ~ ticket.id) }}">
+                                <button type="submit" style="margin-left: 0.5rem; color: #DC2626; background: none; border: none; padding: 0; cursor: pointer;">{{ 'Delete Permanently'|trans }}</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="5" style="text-align:center;">{{ 'Trash is empty.'|trans }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
 <div class="card">
     <div class="card-header" style="margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;">
-        <h3 class="card-title">My Tickets</h3>
-        <a href="{{ path('app_ticket_create') }}" class="btn btn-primary" style="font-size: 0.875rem; text-decoration: none; font-weight: 600;">+ New Ticket</a>
+        <h3 class="card-title">{{ 'My Tickets'|trans }}</h3>
+        <a href="{{ path('app_ticket_create') }}" class="btn btn-primary" style="font-size: 0.875rem; text-decoration: none; font-weight: 600;">{{ '+ New Ticket'|trans }}</a>
     </div>
 
     <div class="table-container">
         <table class="styled-table">
             <thead>
                 <tr>
-                    <th>ID</th>
-                    <th>Subject</th>
-                    <th>Category</th>
-                    <th>Date</th>
-                    <th>Status</th>
-                    <th>Action</th>
+                    <th>{{ 'ID'|trans }}</th>
+                    <th>{{ 'Subject'|trans }}</th>
+                    <th>{{ 'Category'|trans }}</th>
+                    <th>{{ 'Date'|trans }}</th>
+                    <th>{{ 'Status'|trans }}</th>
+                    <th>{{ 'Action'|trans }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -29,18 +82,22 @@
                         <td>{{ ticket.category.label|default('-') }}</td>
                         <td>{{ ticket.createdAt|date('M d, Y') }}</td>
                         <td>
-                            {% set statusLabel = ticket.status.label|default('Unknown') %}
+                            {% set statusLabel = ticket.status.label|default('Unknown'|trans) %}
                             <span class="status-badge {{ statusLabel in ['Ouvert', 'En cours'] ? 'status-open' : 'status-closed' }}">
                                 {{ statusLabel }}
                             </span>
                         </td>
                         <td>
-                            <a href="{{ path('app_ticket_show', {id: ticket.id}) }}" style="color: #3B82F6;">View</a>
+                            <a href="{{ path('app_ticket_show', {id: ticket.id}) }}" style="color: #3B82F6;">{{ 'View'|trans }}</a>
+                            <form method="post" action="{{ path('app_ticket_delete', {id: ticket.id}) }}" style="display: inline;">
+                                <input type="hidden" name="_token" value="{{ csrf_token('ticket_delete_' ~ ticket.id) }}">
+                                <button type="submit" style="margin-left: 0.5rem; color: #DC2626; background: none; border: none; padding: 0; cursor: pointer;">{{ 'Delete'|trans }}</button>
+                            </form>
                         </td>
                     </tr>
                 {% else %}
                     <tr>
-                        <td colspan="6" style="text-align:center;">You have not created any tickets yet.</td>
+                        <td colspan="6" style="text-align:center;">{{ 'You have not created any tickets yet.'|trans }}</td>
                     </tr>
                 {% endfor %}
             </tbody>

@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ app.request.locale }}" data-theme="{{ app.user ? app.user.theme : 'system' }}">
 <head>
     <meta charset="UTF-8">
-    <title>Genesys Helpdesk | Login</title>
-    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+    <title>{{ 'Genesys Helpdesk'|trans }} | {{ 'Login'|trans }}</title>
+    <link rel="stylesheet" href="{{ asset('css/style.css') }}?v={{ app.request.server.get('REQUEST_TIME') }}" data-turbo-track="reload">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body {
@@ -52,8 +52,8 @@
 <body>
     <div class="login-card">
         <div class="login-header">
-            <div class="login-brand">Genesys Helpdesk</div>
-            <p class="login-subtitle">Sign in to your account</p>
+            <div class="login-brand">{{ 'Genesys Helpdesk'|trans }}</div>
+            <p class="login-subtitle">{{ 'Sign in to your account'|trans }}</p>
         </div>
 
         <form method="post">
@@ -66,16 +66,16 @@
 
             <div class="form-stack">
                 <div class="form-group">
-                    <label for="username" class="label">Email Address</label>
-                    <input type="email" value="{{ last_username }}" name="_username" id="username" class="input" autocomplete="email" required autofocus placeholder="Enter your email">
+                    <label for="username" class="label">{{ 'Email Address'|trans }}</label>
+                    <input type="email" value="{{ last_username }}" name="_username" id="username" class="input" autocomplete="email" required autofocus placeholder="{{ 'Enter your email'|trans }}">
                 </div>
                 
                 <div class="form-group">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <label for="password" class="label">Password</label>
-                        <a href="{{ path('app_forgot_password') }}" style="font-size: 0.75rem; color: var(--accent-color); text-decoration: none; font-weight: 600;">Forgot?</a>
+                        <label for="password" class="label">{{ 'Password'|trans }}</label>
+                        <a href="{{ path('app_forgot_password') }}" style="font-size: 0.75rem; color: var(--accent-color); text-decoration: none; font-weight: 600;">{{ 'Forgot?'|trans }}</a>
                     </div>
-                    <input type="password" name="_password" id="password" class="input" autocomplete="current-password" required placeholder="Enter your password">
+                    <input type="password" name="_password" id="password" class="input" autocomplete="current-password" required placeholder="{{ 'Enter your password'|trans }}">
                 </div>
 
                 <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
@@ -83,18 +83,18 @@
                 <div class="form-group">
                     <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
                         <input type="checkbox" name="_remember_me" style="width: 1rem; height: 1rem; cursor: pointer;">
-                        <span style="font-size: 0.875rem; color: var(--text-muted);">Remember me</span>
+                        <span style="font-size: 0.875rem; color: var(--text-muted);">{{ 'Remember me'|trans }}</span>
                     </label>
                 </div>
 
                 <button  type="submit" class="btn btn-submit">
-                    Sign In
+                    {{ 'Sign In'|trans }}
                 </button>
             </div>
         </form>
 
         <div class="form-footer">
-            Don't have an account? <a href="{{ path('app_user_create') }}">Sign up</a>
+            {{ "Don't have an account?"|trans }} <a href="{{ path('app_user_create') }}">{{ 'Sign up'|trans }}</a>
         </div>
     </div>
 </body>

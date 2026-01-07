@@ -1,24 +1,24 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Manage Users{% endblock %}
+{% block title %}{{ 'Manage Users'|trans }}{% endblock %}
 
 {% block body %}
     <div class="card">
         <div class="card-header" style="margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;">
-            <h3 class="card-title">User Management</h3>
-            <a href="{{ path('app_user_create') }}" style="font-size: 0.875rem; color: #3B82F6; text-decoration: none; font-weight: 600;">+ New User</a>
+            <h3 class="card-title">{{ 'User Management'|trans }}</h3>
+            <a href="{{ path('app_user_create') }}" style="font-size: 0.875rem; color: #3B82F6; text-decoration: none; font-weight: 600;">{{ '+ New User'|trans }}</a>
         </div>
         
         <div class="table-container">
             <table class="styled-table">
                 <thead>
                     <tr>
-                        <th>ID</th>
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>Role</th>
-                        <th>Created At</th>
-                        <th>Action</th>
+                        <th>{{ 'ID'|trans }}</th>
+                        <th>{{ 'Name'|trans }}</th>
+                        <th>{{ 'Email'|trans }}</th>
+                        <th>{{ 'Role'|trans }}</th>
+                        <th>{{ 'Created At'|trans }}</th>
+                        <th>{{ 'Action'|trans }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -36,12 +36,18 @@
                             </td>
                             <td>{{ user.createdAt ? user.createdAt|date('Y-m-d') : '-' }}</td>
                             <td>
-                                <a href="{{ path('app_admin_user_edit', {id: user.id}) }}" style="color: #64748B;">Edit</a>
+                                <a href="{{ path('app_admin_user_edit', {id: user.id}) }}" style="color: #64748B;">{{ 'Edit'|trans }}</a>
+                                {% if app.user and app.user.id != user.id %}
+                                    <form method="post" action="{{ path('app_admin_user_delete', {id: user.id}) }}" style="display: inline;">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('user_delete_' ~ user.id) }}">
+                                        <button type="submit" style="margin-left: 0.5rem; color: #DC2626; background: none; border: none; padding: 0; cursor: pointer;">{{ 'Delete'|trans }}</button>
+                                    </form>
+                                {% endif %}
                             </td>
                         </tr>
                     {% else %}
                         <tr>
-                            <td colspan="6">No users found.</td>
+                            <td colspan="6">{{ 'No users found.'|trans }}</td>
                         </tr>
                     {% endfor %}
                 </tbody>

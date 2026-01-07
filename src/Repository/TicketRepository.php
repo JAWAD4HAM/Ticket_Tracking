@@ -20,6 +20,7 @@ class TicketRepository extends ServiceEntityRepository
     {
         return $this->createQueryBuilder('t')
             ->andWhere('t.creator = :user')
+            ->andWhere('t.deletedAt IS NULL')
             ->setParameter('user', $user)
             ->orderBy('t.createdAt', 'DESC')
             ->getQuery()
@@ -30,6 +31,7 @@ class TicketRepository extends ServiceEntityRepository
     {
         return $this->createQueryBuilder('t')
             ->andWhere('t.assignee = :user')
+            ->andWhere('t.deletedAt IS NULL')
             ->setParameter('user', $user)
             ->orderBy('t.createdAt', 'DESC')
             ->getQuery()
@@ -40,6 +42,7 @@ class TicketRepository extends ServiceEntityRepository
     {
         return $this->createQueryBuilder('t')
             ->andWhere('t.assignee IS NULL')
+            ->andWhere('t.deletedAt IS NULL')
             ->orderBy('t.createdAt', 'DESC')
             ->getQuery()
             ->getResult();
@@ -48,6 +51,7 @@ class TicketRepository extends ServiceEntityRepository
     public function findAllSorted(?int $limit = null): array
     {
         $qb = $this->createQueryBuilder('t')
+            ->andWhere('t.deletedAt IS NULL')
             ->orderBy('t.createdAt', 'DESC');
 
         if ($limit !== null) {
@@ -69,7 +73,8 @@ class TicketRepository extends ServiceEntityRepository
             ->leftJoin('t.category', 'c')
             ->leftJoin('t.creator', 'cr')
             ->leftJoin('t.assignee', 'a')
-            ->addSelect('s', 'p', 'c', 'cr', 'a');
+            ->addSelect('s', 'p', 'c', 'cr', 'a')
+            ->andWhere('t.deletedAt IS NULL');
 
         if ($statusLabel) {
             $qb->andWhere('s.label = :status')->setParameter('status', $statusLabel);
@@ -95,11 +100,15 @@ class TicketRepository extends ServiceEntityRepository
     public function getManagerStats(): array
     {
         $qb = $this->createQueryBuilder('t');
-        $total = $qb->select('count(t.id)')->getQuery()->getSingleScalarResult();
+        $total = $qb->select('count(t.id)')
+            ->andWhere('t.deletedAt IS NULL')
+            ->getQuery()
+            ->getSingleScalarResult();
         
         $qb = $this->createQueryBuilder('t');
         $unassigned = $qb->select('count(t.id)')
             ->where('t.assignee IS NULL')
+            ->andWhere('t.deletedAt IS NULL')
             ->getQuery()
             ->getSingleScalarResult();
 
@@ -107,6 +116,7 @@ class TicketRepository extends ServiceEntityRepository
         $open = $qb->select('count(t.id)')
             ->leftJoin('t.status', 's')
             ->andWhere('s.label IN (:open)')
+            ->andWhere('t.deletedAt IS NULL')
             ->setParameter('open', ['Ouvert', 'En cours'])
             ->getQuery()
             ->getSingleScalarResult();
@@ -114,6 +124,7 @@ class TicketRepository extends ServiceEntityRepository
         $resolvedTickets = $this->createQueryBuilder('t')
             ->leftJoin('t.status', 's')
             ->andWhere('s.label IN (:resolved)')
+            ->andWhere('t.deletedAt IS NULL')
             ->setParameter('resolved', ['Résolu', 'Fermé'])
             ->getQuery()
             ->getResult();
@@ -134,6 +145,7 @@ class TicketRepository extends ServiceEntityRepository
             ->select('u.id as id, u.name as name, COUNT(t.id) as total')
             ->leftJoin('t.assignee', 'u')
             ->andWhere('t.assignee IS NOT NULL')
+            ->andWhere('t.deletedAt IS NULL')
             ->groupBy('u.id')
             ->orderBy('total', 'DESC')
             ->getQuery()
@@ -146,5 +158,25 @@ class TicketRepository extends ServiceEntityRepository
             'avg_resolution_hours' => $avgResolutionHours,
             'tickets_per_tech' => $ticketsPerTech,
         ];
+    }
+
+    public function findDeletedByCreator($user): array
+    {
+        return $this->createQueryBuilder('t')
+            ->andWhere('t.creator = :user')
+            ->andWhere('t.deletedAt IS NOT NULL')
+            ->setParameter('user', $user)
+            ->orderBy('t.deletedAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function findDeletedAll(): array
+    {
+        return $this->createQueryBuilder('t')
+            ->andWhere('t.deletedAt IS NOT NULL')
+            ->orderBy('t.deletedAt', 'DESC')
+            ->getQuery()
+            ->getResult();
     }
 }

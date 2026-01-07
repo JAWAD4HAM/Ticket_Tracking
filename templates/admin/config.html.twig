@@ -1,11 +1,11 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}System Configuration{% endblock %}
+{% block title %}{{ 'System Configuration'|trans }}{% endblock %}
 
 {% block body %}
 <div class="card" style="margin-bottom: 2rem;">
     <div class="card-header">
-        <h3 class="card-title">Categories</h3>
+        <h3 class="card-title">{{ 'Categories'|trans }}</h3>
     </div>
     <div style="padding: 1.5rem;">
         <form method="post" action="{{ path('app_admin_config') }}" class="form-stack" style="margin-bottom: 1rem;">
@@ -13,11 +13,11 @@
             <input type="hidden" name="action" value="add_category">
             <div class="form-row">
                 <div class="form-group" style="flex: 1;">
-                    <label class="label">New Category</label>
-                    <input type="text" name="label" class="input" placeholder="e.g. Hardware" required>
+                    <label class="label">{{ 'New Category'|trans }}</label>
+                    <input type="text" name="label" class="input" placeholder="{{ 'e.g. Hardware'|trans }}" required>
                 </div>
                 <div class="form-group" style="align-self: flex-end;">
-                    <button type="submit" class="btn btn-primary">Add</button>
+                    <button type="submit" class="btn btn-primary">{{ 'Add'|trans }}</button>
                 </div>
             </div>
         </form>
@@ -26,8 +26,8 @@
             <table class="styled-table">
                 <thead>
                     <tr>
-                        <th>Label</th>
-                        <th>Action</th>
+                        <th>{{ 'Label'|trans }}</th>
+                        <th>{{ 'Action'|trans }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -37,12 +37,12 @@
                             <td>
                                 <form method="post" action="{{ path('app_admin_category_delete', {id: category.id}) }}">
                                     <input type="hidden" name="_token" value="{{ csrf_token('delete_category_' ~ category.id) }}">
-                                    <button class="btn btn-secondary" type="submit">Delete</button>
+                                    <button class="btn btn-secondary" type="submit">{{ 'Delete'|trans }}</button>
                                 </form>
                             </td>
                         </tr>
                     {% else %}
-                        <tr><td colspan="2">No categories found.</td></tr>
+                        <tr><td colspan="2">{{ 'No categories found.'|trans }}</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
@@ -52,7 +52,7 @@
 
 <div class="card" style="margin-bottom: 2rem;">
     <div class="card-header">
-        <h3 class="card-title">Priorities</h3>
+        <h3 class="card-title">{{ 'Priorities'|trans }}</h3>
     </div>
     <div style="padding: 1.5rem;">
         <form method="post" action="{{ path('app_admin_config') }}" class="form-stack" style="margin-bottom: 1rem;">
@@ -60,15 +60,15 @@
             <input type="hidden" name="action" value="add_priority">
             <div class="form-row">
                 <div class="form-group" style="flex: 2;">
-                    <label class="label">New Priority</label>
-                    <input type="text" name="label" class="input" placeholder="e.g. P2 - High" required>
+                    <label class="label">{{ 'New Priority'|trans }}</label>
+                    <input type="text" name="label" class="input" placeholder="{{ 'e.g. P2 - High'|trans }}" required>
                 </div>
                 <div class="form-group" style="flex: 1;">
-                    <label class="label">Level</label>
+                    <label class="label">{{ 'Level'|trans }}</label>
                     <input type="number" name="level" class="input" min="1" max="10" required>
                 </div>
                 <div class="form-group" style="align-self: flex-end;">
-                    <button type="submit" class="btn btn-primary">Add</button>
+                    <button type="submit" class="btn btn-primary">{{ 'Add'|trans }}</button>
                 </div>
             </div>
         </form>
@@ -77,9 +77,9 @@
             <table class="styled-table">
                 <thead>
                     <tr>
-                        <th>Label</th>
-                        <th>Level</th>
-                        <th>Action</th>
+                        <th>{{ 'Label'|trans }}</th>
+                        <th>{{ 'Level'|trans }}</th>
+                        <th>{{ 'Action'|trans }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -90,12 +90,12 @@
                             <td>
                                 <form method="post" action="{{ path('app_admin_priority_delete', {id: priority.id}) }}">
                                     <input type="hidden" name="_token" value="{{ csrf_token('delete_priority_' ~ priority.id) }}">
-                                    <button class="btn btn-secondary" type="submit">Delete</button>
+                                    <button class="btn btn-secondary" type="submit">{{ 'Delete'|trans }}</button>
                                 </form>
                             </td>
                         </tr>
                     {% else %}
-                        <tr><td colspan="3">No priorities found.</td></tr>
+                        <tr><td colspan="3">{{ 'No priorities found.'|trans }}</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
@@ -105,7 +105,7 @@
 
 <div class="card">
     <div class="card-header">
-        <h3 class="card-title">Statuses</h3>
+        <h3 class="card-title">{{ 'Statuses'|trans }}</h3>
     </div>
     <div style="padding: 1.5rem;">
         <form method="post" action="{{ path('app_admin_config') }}" class="form-stack" style="margin-bottom: 1rem;">
@@ -113,11 +113,11 @@
             <input type="hidden" name="action" value="add_status">
             <div class="form-row">
                 <div class="form-group" style="flex: 1;">
-                    <label class="label">New Status</label>
-                    <input type="text" name="label" class="input" placeholder="e.g. En cours" required>
+                    <label class="label">{{ 'New Status'|trans }}</label>
+                    <input type="text" name="label" class="input" placeholder="{{ 'e.g. En cours'|trans }}" required>
                 </div>
                 <div class="form-group" style="align-self: flex-end;">
-                    <button type="submit" class="btn btn-primary">Add</button>
+                    <button type="submit" class="btn btn-primary">{{ 'Add'|trans }}</button>
                 </div>
             </div>
         </form>
@@ -126,8 +126,8 @@
             <table class="styled-table">
                 <thead>
                     <tr>
-                        <th>Label</th>
-                        <th>Action</th>
+                        <th>{{ 'Label'|trans }}</th>
+                        <th>{{ 'Action'|trans }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -137,12 +137,12 @@
                             <td>
                                 <form method="post" action="{{ path('app_admin_status_delete', {id: status.id}) }}">
                                     <input type="hidden" name="_token" value="{{ csrf_token('delete_status_' ~ status.id) }}">
-                                    <button class="btn btn-secondary" type="submit">Delete</button>
+                                    <button class="btn btn-secondary" type="submit">{{ 'Delete'|trans }}</button>
                                 </form>
                             </td>
                         </tr>
                     {% else %}
-                        <tr><td colspan="2">No statuses found.</td></tr>
+                        <tr><td colspan="2">{{ 'No statuses found.'|trans }}</td></tr>
                     {% endfor %}
                 </tbody>
             </table>

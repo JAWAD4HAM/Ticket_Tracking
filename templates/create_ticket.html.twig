@@ -1,50 +1,55 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Create Ticket{% endblock %}
+{% block title %}{{ 'Create Ticket'|trans }}{% endblock %}
 
 {% block body %}
     <div class="card">
         <div class="card-header">
-            <h3 class="card-title">Create New Ticket</h3>
-            <p class="card-subtitle">Fill in the details below to raise a new support ticket.</p>
+            <h3 class="card-title">{{ 'Create New Ticket'|trans }}</h3>
+            <p class="card-subtitle">{{ 'Fill in the details below to raise a new support ticket.'|trans }}</p>
         </div>
 
         {{ form_start(form, {'attr': {'class': 'form-stack'}}) }}
+            {% if form.vars.errors|length %}
+                <div class="alert-box alert-blue" role="alert">
+                    {{ form_errors(form) }}
+                </div>
+            {% endif %}
             
             <div class="form-group">
-                {{ form_label(form.title, 'Ticket Title', {'label_attr': {'class': 'label'}}) }}
-                {{ form_widget(form.title, {'attr': {'class': 'input', 'placeholder': 'Brief summary of the issue'}}) }}
+                {{ form_label(form.title, 'Ticket Title'|trans, {'label_attr': {'class': 'label'}}) }}
+                {{ form_widget(form.title, {'attr': {'class': 'input', 'placeholder': 'Brief summary of the issue'|trans}}) }}
                 {{ form_errors(form.title) }}
             </div>
 
             <div class="form-row">
                 <div class="form-group">
-                    {{ form_label(form.category, 'Category', {'label_attr': {'class': 'label'}}) }}
+                    {{ form_label(form.category, 'Category'|trans, {'label_attr': {'class': 'label'}}) }}
                     {{ form_widget(form.category, {'attr': {'class': 'select'}}) }}
                     {{ form_errors(form.category) }}
                 </div>
                 <div class="form-group">
-                    {{ form_label(form.priority, 'Priority', {'label_attr': {'class': 'label'}}) }}
+                    {{ form_label(form.priority, 'Priority'|trans, {'label_attr': {'class': 'label'}}) }}
                     {{ form_widget(form.priority, {'attr': {'class': 'select'}}) }}
                     {{ form_errors(form.priority) }}
                 </div>
             </div>
 
             <div class="form-group">
-                {{ form_label(form.description, 'Description', {'label_attr': {'class': 'label'}}) }}
-                {{ form_widget(form.description, {'attr': {'class': 'textarea', 'rows': '4', 'placeholder': 'Detailed description of the problem...'}}) }}
+                {{ form_label(form.description, 'Description'|trans, {'label_attr': {'class': 'label'}}) }}
+                {{ form_widget(form.description, {'attr': {'class': 'textarea', 'rows': '4', 'placeholder': 'Detailed description of the problem...'|trans}}) }}
                 {{ form_errors(form.description) }}
             </div>
 
             <div class="form-group">
-                {{ form_label(form.attachments, 'Attachments', {'label_attr': {'class': 'label'}}) }}
+                {{ form_label(form.attachments, 'Attachments'|trans, {'label_attr': {'class': 'label'}}) }}
                 {{ form_widget(form.attachments, {'attr': {'class': 'input'}}) }}
                 {{ form_errors(form.attachments) }}
             </div>
 
             <div class="btn-group">
-                <button type="reset" class="btn btn-reset">Reset</button>
-                <button type="submit" class="btn btn-submit">Create Ticket</button>
+                <button type="reset" class="btn btn-reset">{{ 'Reset'|trans }}</button>
+                <button type="submit" class="btn btn-submit">{{ 'Create Ticket'|trans }}</button>
             </div>
         {{ form_end(form) }}
     </div>
