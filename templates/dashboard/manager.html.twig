@@ -3,8 +3,17 @@
 {% block title %}{{ 'Manager Dashboard'|trans }}{% endblock %}
 
 {% block body %}
-<div class="manager-header">
+<div class="manager-header" style="justify-content: space-between; display: flex; align-items: center;">
     <h2 class="manager-title">{{ 'Manager Overview'|trans }}</h2>
+    <form method="get" action="{{ path('app_dashboard') }}" id="periodForm">
+        <select name="period" class="select" onchange="this.form.submit()">
+            <option value="7_days" {{ current_period == '7_days' ? 'selected' : '' }}>{{ 'Last 7 Days'|trans }}</option>
+            <option value="30_days" {{ current_period == '30_days' ? 'selected' : '' }}>{{ 'Last 30 Days'|trans }}</option>
+            <option value="this_month" {{ current_period == 'this_month' ? 'selected' : '' }}>{{ 'This Month'|trans }}</option>
+            <option value="last_month" {{ current_period == 'last_month' ? 'selected' : '' }}>{{ 'Last Month'|trans }}</option>
+            <option value="all_time" {{ current_period == 'all_time' ? 'selected' : '' }}>{{ 'All Time'|trans }}</option>
+        </select>
+    </form>
 </div>
 
 <div class="manager-dashboard">
@@ -31,53 +40,80 @@
             <div class="card chart-card">
                 <div class="chart-header">
                     <div>
-                        <h3 class="chart-title">{{ 'Ticket Evolution'|trans }}</h3>
-                        <p class="chart-subtitle">{{ 'Evolution of tickets in the past year'|trans }}</p>
-                    </div>
-                    <div class="chart-legend">
-                        <span class="legend-item"><span class="legend-dot dot-blue"></span>{{ 'Open Tickets'|trans }}</span>
-                        <span class="legend-item"><span class="legend-dot dot-emerald"></span>{{ 'Resolved Tickets'|trans }}</span>
-                        <span class="legend-item"><span class="legend-dot dot-amber"></span>{{ 'Late Tickets'|trans }}</span>
+                        <h3 class="chart-title">{{ 'Ticket Volume'|trans }}</h3>
+                        <p class="chart-subtitle">{{ 'Daily ticket creation'|trans }}</p>
                     </div>
                 </div>
-                <div class="chart-body">
-                    <svg class="chart-svg" viewBox="0 0 600 220" preserveAspectRatio="none" aria-hidden="true">
-                        <defs>
-                            <linearGradient id="lineFade" x1="0" x2="0" y1="0" y2="1">
-                                <stop offset="0%" stop-color="#3B82F6" stop-opacity="0.35"/>
-                                <stop offset="100%" stop-color="#3B82F6" stop-opacity="0"/>
-                            </linearGradient>
-                        </defs>
-                        <path d="M0 200 L60 195 L120 198 L180 190 L240 192 L300 170 L360 120 L420 80 L480 60 L540 110 L600 190" fill="none" stroke="#3B82F6" stroke-width="3"/>
-                        <path d="M0 200 L60 195 L120 198 L180 190 L240 192 L300 170 L360 120 L420 80 L480 60 L540 110 L600 190 L600 220 L0 220 Z" fill="url(#lineFade)"/>
-                        <circle cx="480" cy="60" r="6" fill="#3B82F6"/>
-                    </svg>
+                <div class="chart-body" style="height: 250px; position: relative;">
+                    <canvas id="volumeChart"></canvas>
                 </div>
             </div>
 
             <div class="card chart-card">
                 <div class="chart-header">
                     <div>
-                        <h3 class="chart-title">{{ 'Tickets status by month'|trans }}</h3>
-                        <p class="chart-subtitle">{{ 'Status distribution trend'|trans }}</p>
-                    </div>
-                    <div class="chart-legend">
-                        <span class="legend-item"><span class="legend-dot dot-indigo"></span>{{ 'In Progress'|trans }}</span>
-                        <span class="legend-item"><span class="legend-dot dot-green"></span>{{ 'Resolved Tickets'|trans }}</span>
-                        <span class="legend-item"><span class="legend-dot dot-slate"></span>{{ 'Closed Tickets'|trans }}</span>
+                        <h3 class="chart-title">{{ 'Status Distribution'|trans }}</h3>
+                        <p class="chart-subtitle">{{ 'Tickets by status'|trans }}</p>
                     </div>
                 </div>
-                <div class="chart-body">
-                    <svg class="chart-svg" viewBox="0 0 600 220" preserveAspectRatio="none" aria-hidden="true">
-                        <rect x="40" y="60" width="80" height="140" fill="#93C5FD"/>
-                        <rect x="150" y="40" width="80" height="160" fill="#60A5FA"/>
-                        <rect x="260" y="90" width="80" height="110" fill="#A7F3D0"/>
-                        <rect x="370" y="70" width="80" height="130" fill="#34D399"/>
-                        <rect x="480" y="100" width="80" height="100" fill="#94A3B8"/>
-                    </svg>
+                <div class="chart-body" style="height: 250px; position: relative;">
+                    <canvas id="statusChart"></canvas>
                 </div>
             </div>
         </div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('turbo:load', function() {
+    const volumeCtx = document.getElementById('volumeChart');
+    if (volumeCtx) {
+        new Chart(volumeCtx, {
+            type: 'line',
+            data: {
+                labels: {{ chart_data.volume|column('date')|json_encode|raw }},
+                datasets: [{
+                    label: '{{ "Tickets"|trans }}',
+                    data: {{ chart_data.volume|column('count')|json_encode|raw }},
+                    borderColor: '#3B82F6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { 
+                    y: { beginAtZero: true, ticks: { precision: 0 } }
+                }
+            }
+        });
+    }
+
+    const statusCtx = document.getElementById('statusChart');
+    if (statusCtx) {
+        new Chart(statusCtx, {
+            type: 'doughnut',
+            data: {
+                labels: {{ chart_data.status|column('status')|json_encode|raw }},
+                datasets: [{
+                    data: {{ chart_data.status|column('count')|json_encode|raw }},
+                    backgroundColor: [
+                        '#10B981', '#3B82F6', '#F59E0B', '#EF4444', '#6366F1', '#8B5CF6'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { 
+                    legend: { position: 'right' }
+                }
+            }
+        });
+    }
+});
+</script>
 
         <div class="manager-tiles">
             <div class="tile-card tile-green">

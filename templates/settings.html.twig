@@ -55,4 +55,36 @@
             </form>
         </div>
     </div>
+
+    <div class="card" style="margin-top: 2rem;">
+        <div class="card-header">
+            <h3 class="card-title">{{ 'Security'|trans }}</h3>
+            <p class="card-subtitle">{{ 'Update your password'|trans }}</p>
+        </div>
+        <div class="card-body">
+            <form class="form-stack" method="post" action="{{ path('app_settings_password') }}">
+                <input type="hidden" name="_token" value="{{ csrf_token('settings_password') }}">
+                
+                <div class="form-group">
+                    <label class="label">{{ 'Current Password'|trans }}</label>
+                    <input type="password" name="current_password" class="input" required>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="label">{{ 'New Password'|trans }}</label>
+                        <input type="password" name="new_password" class="input" required minlength="6">
+                    </div>
+                    <div class="form-group">
+                        <label class="label">{{ 'Confirm New Password'|trans }}</label>
+                        <input type="password" name="confirm_password" class="input" required minlength="6">
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <button type="submit" class="btn btn-warning">{{ 'Change Password'|trans }}</button>
+                </div>
+            </form>
+        </div>
+    </div>
 {% endblock %}

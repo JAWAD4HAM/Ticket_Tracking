@@ -1,0 +1,63 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'Manage Articles'|trans }}{% endblock %}
+
+{% block body %}
+    <div style="margin-bottom: 1rem;">
+        <a href="{{ path('app_kb_index') }}" style="color: #3B82F6; text-decoration: none;">
+            <i class="fa-solid fa-arrow-left"></i> {{ 'Back to Public View'|trans }}
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="card-header" style="margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;">
+            <h3 class="card-title">{{ 'Manage Articles'|trans }}</h3>
+            <a href="{{ path('app_kb_new') }}" class="btn btn-primary">{{ '+ New Article'|trans }}</a>
+        </div>
+
+        <div class="table-container">
+            <table class="styled-table">
+                <thead>
+                    <tr>
+                        <th>{{ 'Title'|trans }}</th>
+                        <th>{{ 'Category'|trans }}</th>
+                        <th>{{ 'Author'|trans }}</th>
+                        <th>{{ 'Status'|trans }}</th>
+                        <th>{{ 'Last Updated'|trans }}</th>
+                        <th>{{ 'Actions'|trans }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for article in articles %}
+                        <tr>
+                            <td>
+                                <a href="{{ path('app_kb_show', {id: article.id}) }}" style="color: #1F2937; font-weight: 500;">
+                                    {{ article.title }}
+                                </a>
+                            </td>
+                            <td>{{ article.category ? article.category.label : '-' }}</td>
+                            <td>{{ article.author ? article.author.name : '-' }}</td>
+                            <td>
+                                <span class="status-badge {{ article.isPublished ? 'status-open' : 'status-closed' }}">
+                                    {{ article.isPublished ? 'Published'|trans : 'Draft'|trans }}
+                                </span>
+                            </td>
+                            <td>{{ article.updatedAt ? article.updatedAt|date('M d, Y H:i') : article.createdAt|date('M d, Y H:i') }}</td>
+                            <td>
+                                <a href="{{ path('app_kb_edit', {id: article.id}) }}" style="color: #3B82F6; margin-right: 0.5rem;">{{ 'Edit'|trans }}</a>
+                                <form method="post" action="{{ path('app_kb_delete', {id: article.id}) }}" style="display: inline;" onsubmit="return confirm('{{ 'Are you sure you want to delete this article?'|trans }}');">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ article.id) }}">
+                                    <button type="submit" style="color: #DC2626; background: none; border: none; padding: 0; cursor: pointer;">{{ 'Delete'|trans }}</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="6">{{ 'No articles found.'|trans }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}

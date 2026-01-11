@@ -1,18 +1,21 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <nav class="sidebar">
-    <div class="brand">{{ 'Genesys Helpdesk'|trans }}</div>
+    <div class="brand">
+        <img src="{{ asset('images/logo.png') }}" class="logo-light" alt="Helpio Logo" style="max-width: 150px; height: auto;">
+        <img src="{{ asset('images/logo-dark.png') }}" class="logo-dark" alt="Helpio Logo" style="max-width: 150px; height: auto;">
+    </div>
     <ul class="nav-menu">
 
 
         <li>
-            <a href="{{ path('app_dashboard') }}" data-turbo-frame="main" class="nav-link {{ app.request.attributes.get('_route') == 'app_dashboard' ? 'active' : '' }}">
-                <i class="fa-solid fa-chart-line sidebar-icon"></i> {{ 'Dashboard'|trans }}
+            <a href="{{ path('app_dashboard') }}" class="nav-link {{ app.request.attributes.get('_route') == 'app_dashboard' ? 'active' : '' }}">
+                <i class="fa-solid {{ not is_granted('ROLE_TECH') ? 'fa-layer-group' : 'fa-chart-line' }} sidebar-icon"></i> {{ (not is_granted('ROLE_TECH') ? 'All Tickets' : 'Dashboard')|trans }}
             </a>
         </li>
 
         {% if is_granted('ROLE_USER') %}
         <li>
-            <a href="{{ path('app_ticket_create') }}" data-turbo-frame="main" class="nav-link {{ app.request.attributes.get('_route') == 'app_ticket_create' ? 'active' : '' }}">
+            <a href="{{ path('app_ticket_create') }}" class="nav-link {{ app.request.attributes.get('_route') == 'app_ticket_create' ? 'active' : '' }}">
                 <i class="fa-solid fa-circle-plus sidebar-icon"></i> {{ 'Create Ticket'|trans }}
             </a>
         </li>
@@ -20,26 +23,40 @@
 
         {% if is_granted('ROLE_TECH') %}
         <li>
-            <a href="{{ path('app_ticket') }}" data-turbo-frame="main" class="nav-link {{ app.request.attributes.get('_route') == 'app_ticket' ? 'active' : '' }}">
+            <a href="{{ path('app_ticket') }}" class="nav-link {{ (app.request.attributes.get('_route') == 'app_ticket' or app.request.attributes.get('_route') == 'app_ticket_show') ? 'active' : '' }}">
                 <i class="fa-solid fa-layer-group sidebar-icon"></i> {{ 'All Tickets'|trans }}
             </a>
         </li>
         {% endif %}
 
+        <li>
+            <a href="{{ path('app_kb_index') }}" class="nav-link {{ app.request.attributes.get('_route') starts with 'app_kb' ? 'active' : '' }}">
+                <i class="fa-solid fa-book sidebar-icon"></i> {{ 'Knowledge Base'|trans }}
+            </a>
+        </li>
+
         {% if is_granted('ROLE_ADMIN') %}
         <li>
-            <a href="{{ path('app_user_create') }}" data-turbo-frame="main" class="nav-link {{ app.request.attributes.get('_route') == 'app_user_create' ? 'active' : '' }}">
+            <a href="{{ path('app_user_create') }}" class="nav-link {{ app.request.attributes.get('_route') == 'app_user_create' ? 'active' : '' }}">
                 <i class="fa-solid fa-user-plus sidebar-icon"></i> {{ 'Create User'|trans }}
             </a>
         </li>
         <li>
-            <a href="{{ path('app_admin_users') }}" data-turbo-frame="main" class="nav-link {{ app.request.attributes.get('_route') == 'app_admin_users' ? 'active' : '' }}">
+            <a href="{{ path('app_admin_users') }}" class="nav-link {{ app.request.attributes.get('_route') starts with 'app_admin_user' and app.request.attributes.get('_route') != 'app_user_create' ? 'active' : '' }}">
               <i class="fa-solid fa-users-gear sidebar-icon"></i> {{ 'Users'|trans }}
             </a>
         </li>
         <li>
-            <a href="{{ path('app_admin_config') }}" data-turbo-frame="main" class="nav-link {{ app.request.attributes.get('_route') == 'app_admin_config' ? 'active' : '' }}">
+            <a href="{{ path('app_admin_config') }}" class="nav-link {{ app.request.attributes.get('_route') == 'app_admin_config' ? 'active' : '' }}">
               <i class="fa-solid fa-sliders sidebar-icon"></i> {{ 'Configuration'|trans }}
+            </a>
+        </li>
+        {% endif %}
+
+        {% if is_granted('ROLE_MANAGER') %}
+        <li>
+            <a href="{{ path('app_report_monthly') }}" class="nav-link">
+                <i class="fa-solid fa-file-csv sidebar-icon"></i> {{ 'Monthly Report'|trans }}
             </a>
         </li>
         {% endif %}
@@ -62,7 +79,7 @@
        
 
    <li>
-            <a href="{{ path('app_settings') }}" data-turbo-frame="main" class="nav-link {{ app.request.attributes.get('_route') == 'app_settings' ? 'active' : '' }}">
+            <a href="{{ path('app_settings') }}" class="nav-link {{ app.request.attributes.get('_route') starts with 'app_settings' ? 'active' : '' }}">
                 <i class="fa-solid fa-gear sidebar-icon"></i> {{ 'Settings'|trans }}
             </a>
         </li>

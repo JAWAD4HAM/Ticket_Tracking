@@ -16,7 +16,7 @@ class Attachment
     #[ORM\Column(name: 'file_path', length: 255)]
     private ?string $filePath = null;
 
-    #[ORM\ManyToOne(targetEntity: Ticket::class)]
+    #[ORM\ManyToOne(targetEntity: Ticket::class, inversedBy: 'attachments')]
     #[ORM\JoinColumn(name: 'ticket_id', referencedColumnName: 'id', nullable: false)]
     private ?Ticket $ticket = null;
 

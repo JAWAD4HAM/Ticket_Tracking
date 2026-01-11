@@ -52,7 +52,10 @@
 <body>
     <div class="login-card">
         <div class="login-header">
-            <div class="login-brand">{{ 'Genesys Helpdesk'|trans }}</div>
+            <div class="login-brand">
+                <img src="{{ asset('images/logo.png') }}" class="logo-light" alt="Helpio Logo" style="max-width: 180px; height: auto;">
+                <img src="{{ asset('images/logo-dark.png') }}" class="logo-dark" alt="Helpio Logo" style="max-width: 180px; height: auto;">
+            </div>
             <p class="login-subtitle">{{ 'Sign in to your account'|trans }}</p>
         </div>
 

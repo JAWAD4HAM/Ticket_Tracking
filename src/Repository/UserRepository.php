@@ -40,11 +40,31 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
     {
         return $this->createQueryBuilder('u')
             ->andWhere('u.role IN (:roles)')
+            ->setParameter('roles', ['TECH', 'MANAGER', 'ADMIN']) # Admin can also be assigned potentially? Assuming TECH/MANAGER for now matching prev logic
             ->setParameter('roles', ['TECH', 'MANAGER'])
             ->orderBy('u.name', 'ASC')
             ->getQuery()
             ->getResult();
     }
+
+    public function countAll(): int
+    {
+        return $this->createQueryBuilder('u')
+            ->select('count(u.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    public function countByRole(string $role): int
+    {
+        return $this->createQueryBuilder('u')
+            ->select('count(u.id)')
+            ->andWhere('u.role = :role')
+            ->setParameter('role', $role)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
 
     //    /**
     //     * @return User[] Returns an array of User objects

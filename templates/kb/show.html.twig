@@ -1,0 +1,48 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ article.title }}{% endblock %}
+
+{% block body %}
+    <div style="margin-bottom: 1rem;">
+        <a href="{{ path('app_kb_index') }}" style="color: #3B82F6; text-decoration: none;">
+            <i class="fa-solid fa-arrow-left"></i> {{ 'Back to Knowledge Base'|trans }}
+        </a>
+    </div>
+
+    <div class="card">
+        <div style="border-bottom: 1px solid #e5e7eb; padding-bottom: 1rem; margin-bottom: 1.5rem;">
+            <h1 style="margin-top: 0; margin-bottom: 0.5rem; font-size: 1.875rem; color: #111827;">{{ article.title }}</h1>
+            <div style="display: flex; align-items: center; gap: 1rem; color: #6B7280; font-size: 0.875rem;">
+                <span>
+                    <i class="fa-regular fa-folder"></i> 
+                    {{ article.category ? article.category.label : 'Uncategorized' }}
+                </span>
+                <span>
+                    <i class="fa-regular fa-clock"></i>
+                    {{ 'Last updated:'|trans }} {{ article.updatedAt ? article.updatedAt|date('M d, Y') : article.createdAt|date('M d, Y') }}
+                </span>
+                <span>
+                    <i class="fa-regular fa-user"></i>
+                    {{ article.author ? article.author.name : 'Unknown' }}
+                </span>
+                {% if not article.isPublished %}
+                    <span style="background-color: #FEF3C7; color: #92400E; padding: 0.125rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem; border: 1px solid #FCD34D;">
+                        {{ 'DRAFT'|trans }}
+                    </span>
+                {% endif %}
+            </div>
+        </div>
+
+        <div style="font-size: 1rem; line-height: 1.6; color: #374151;">
+            {{ article.content|nl2br }}
+        </div>
+
+        {% if is_granted('ROLE_TECH') %}
+            <div style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #e5e7eb;">
+                <a href="{{ path('app_kb_edit', {id: article.id}) }}" class="btn btn-secondary">
+                    <i class="fa-solid fa-pen"></i> {{ 'Edit Article'|trans }}
+                </a>
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}

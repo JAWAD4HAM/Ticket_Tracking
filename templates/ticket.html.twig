@@ -3,6 +3,12 @@
 {% block title %}{{ 'All Tickets'|trans }}{% endblock %}
 
 {% block body %}
+    <div style="display: flex; justify-content: flex-end; margin-bottom: 1rem;">
+        <button type="button" class="btn btn-secondary" onclick="var t=document.getElementById('trash-bin-container');var l=document.getElementById('all-tickets-container');if(t.style.display==='none'){t.style.display='block';l.style.display='none';}else{t.style.display='none';l.style.display='block';}" style="padding: 0.5rem 1rem;" title="{{ 'Toggle Trash Bin'|trans }}">
+            <i class="fa-solid fa-trash"></i>
+        </button>
+    </div>
+<div id="trash-bin-container" style="display: none;">
     <div class="card" style="margin-bottom: 1.5rem;">
         <div class="card-header" style="margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;">
             <h3 class="card-title">{{ 'Trash Bin'|trans }}</h3>
@@ -59,8 +65,9 @@
             </table>
         </div>
     </div>
+    </div>
 
-    <div class="card">
+    <div class="card" id="all-tickets-container">
         <div class="card-header" style="margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;">
             <h3 class="card-title">{{ 'All Tickets'|trans }}</h3>
              {% if is_granted('ROLE_USER') and not is_granted('ROLE_TECH') %}

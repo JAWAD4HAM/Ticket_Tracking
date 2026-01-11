@@ -22,7 +22,7 @@ class TicketComment
     #[ORM\Column(name: 'is_internal', type: 'boolean', options: ['default' => false])]
     private bool $isInternal = false;
 
-    #[ORM\ManyToOne(targetEntity: Ticket::class)]
+    #[ORM\ManyToOne(targetEntity: Ticket::class, inversedBy: 'comments')]
     #[ORM\JoinColumn(name: 'ticket_id', referencedColumnName: 'id', nullable: false)]
     private ?Ticket $ticket = null;
 

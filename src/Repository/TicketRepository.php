@@ -97,56 +97,125 @@ class TicketRepository extends ServiceEntityRepository
             ->getResult();
     }
 
-    public function getManagerStats(): array
+    public function getManagerStats(?\DateTimeInterface $startDate = null, ?\DateTimeInterface $endDate = null): array
     {
         $qb = $this->createQueryBuilder('t');
-        $total = $qb->select('count(t.id)')
-            ->andWhere('t.deletedAt IS NULL')
-            ->getQuery()
-            ->getSingleScalarResult();
+        $qb->select('count(t.id)')
+           ->andWhere('t.deletedAt IS NULL');
+        
+        if ($startDate) {
+            $qb->andWhere('t.createdAt >= :startDate')->setParameter('startDate', $startDate);
+        }
+        if ($endDate) {
+            $qb->andWhere('t.createdAt <= :endDate')->setParameter('endDate', $endDate);
+        }
+        $total = $qb->getQuery()->getSingleScalarResult();
         
         $qb = $this->createQueryBuilder('t');
-        $unassigned = $qb->select('count(t.id)')
+        $qb->select('count(t.id)')
             ->where('t.assignee IS NULL')
-            ->andWhere('t.deletedAt IS NULL')
-            ->getQuery()
-            ->getSingleScalarResult();
+            ->andWhere('t.deletedAt IS NULL');
+        if ($startDate) {
+            $qb->andWhere('t.createdAt >= :startDate')->setParameter('startDate', $startDate);
+        }
+        if ($endDate) {
+            $qb->andWhere('t.createdAt <= :endDate')->setParameter('endDate', $endDate);
+        }
+        $unassigned = $qb->getQuery()->getSingleScalarResult();
 
         $qb = $this->createQueryBuilder('t');
-        $open = $qb->select('count(t.id)')
+        $qb->select('count(t.id)')
             ->leftJoin('t.status', 's')
             ->andWhere('s.label IN (:open)')
             ->andWhere('t.deletedAt IS NULL')
-            ->setParameter('open', ['Ouvert', 'En cours'])
-            ->getQuery()
-            ->getSingleScalarResult();
+            ->setParameter('open', ['Ouvert', 'En cours', 'Open', 'In progress', 'In Progress']);
+        if ($startDate) {
+            $qb->andWhere('t.createdAt >= :startDate')->setParameter('startDate', $startDate);
+        }
+        if ($endDate) {
+            $qb->andWhere('t.createdAt <= :endDate')->setParameter('endDate', $endDate);
+        }
+        $open = $qb->getQuery()->getSingleScalarResult();
 
-        $resolvedTickets = $this->createQueryBuilder('t')
+        // Late Tickets (SLA exceeded) - Usually implies current state is late. 
+        // Or should this be "tickets created in period that are now late"? 
+        // Let's assume stats for "Current Dashboard" usually reflect CURRENT snapshot of tickets matching filter.
+        // But "Late" is a property of open tickets. 
+        // Let's filter late tickets by creation date too? Or just showing current late count?
+        // Usually dashboards show "Late Tickets" as "Currently Late". 
+        // If we filter by "Last Month", do we mean "Tickets created last month that are currently late"?
+        // Yes, let's stick to creation date window for consistency.
+        $qb = $this->createQueryBuilder('t');
+        $qb->select('count(t.id)')
+            ->leftJoin('t.status', 's')
+            ->where('t.slaDueAt < :now')
+            ->andWhere('s.label NOT IN (:closed)')
+            ->andWhere('t.deletedAt IS NULL')
+            ->setParameter('now', new \DateTime())
+            ->setParameter('closed', ['Résolu', 'Fermé', 'Resolved', 'Closed']);
+        if ($startDate) {
+            $qb->andWhere('t.createdAt >= :startDate')->setParameter('startDate', $startDate);
+        }
+        if ($endDate) {
+            $qb->andWhere('t.createdAt <= :endDate')->setParameter('endDate', $endDate);
+        }
+        $late = $qb->getQuery()->getSingleScalarResult();
+
+        // Incoming Tickets (Created in range) - Redundant with Total if Total means Created in range.
+        // But usually "Incoming" implies recent flow. In a dashboard with a filter, "Total" = "Incoming across period".
+        // Let's reuse Total.
+        $incoming = $total;
+
+
+        // Resolved Tickets
+        $qb = $this->createQueryBuilder('t')
+            ->select('t')
             ->leftJoin('t.status', 's')
             ->andWhere('s.label IN (:resolved)')
             ->andWhere('t.deletedAt IS NULL')
-            ->setParameter('resolved', ['Résolu', 'Fermé'])
-            ->getQuery()
-            ->getResult();
+            ->setParameter('resolved', ['Résolu', 'Fermé', 'Resolved', 'Closed']);
+        if ($startDate) {
+            $qb->andWhere('t.createdAt >= :startDate')->setParameter('startDate', $startDate);
+        }
+        if ($endDate) {
+            $qb->andWhere('t.createdAt <= :endDate')->setParameter('endDate', $endDate);
+        }
+        $resolvedTicketsEntities = $qb->getQuery()->getResult();
+        $resolved = count($resolvedTicketsEntities);
 
+        // Avg Resolution Time
         $totalSeconds = 0;
-        $resolvedCount = 0;
-        foreach ($resolvedTickets as $ticket) {
+        $resolvedCountCalc = 0;
+        foreach ($resolvedTicketsEntities as $ticket) {
             $createdAt = $ticket->getCreatedAt();
             $updatedAt = $ticket->getUpdatedAt();
+            // Assuming updatedAt is resolution time for resolved tickets
             if ($createdAt && $updatedAt) {
                 $totalSeconds += max(0, $updatedAt->getTimestamp() - $createdAt->getTimestamp());
-                $resolvedCount++;
+                $resolvedCountCalc++;
             }
         }
-        $avgResolutionHours = $resolvedCount > 0 ? round(($totalSeconds / $resolvedCount) / 3600, 1) : null;
+        $avgResolutionHours = $resolvedCountCalc > 0 ? round(($totalSeconds / $resolvedCountCalc) / 3600, 1) : null;
+
+        $closed = $this->countByStatus(['Fermé', 'Closed'], $startDate, $endDate);
+        $inProgress = $this->countByStatus(['En cours', 'In progress', 'In Progress'], $startDate, $endDate);
+        $assigned = $this->countAssigned($startDate, $endDate);
+
 
         $ticketsPerTech = $this->createQueryBuilder('t')
             ->select('u.id as id, u.name as name, COUNT(t.id) as total')
             ->leftJoin('t.assignee', 'u')
             ->andWhere('t.assignee IS NOT NULL')
-            ->andWhere('t.deletedAt IS NULL')
-            ->groupBy('u.id')
+            ->andWhere('t.deletedAt IS NULL');
+        
+        if ($startDate) {
+            $ticketsPerTech->andWhere('t.createdAt >= :startDate')->setParameter('startDate', $startDate);
+        }
+        if ($endDate) {
+            $ticketsPerTech->andWhere('t.createdAt <= :endDate')->setParameter('endDate', $endDate);
+        }
+            
+        $ticketsPerTech = $ticketsPerTech->groupBy('u.id')
             ->orderBy('total', 'DESC')
             ->getQuery()
             ->getArrayResult();
@@ -155,8 +224,119 @@ class TicketRepository extends ServiceEntityRepository
             'total' => $total,
             'open' => $open,
             'unassigned' => $unassigned,
+            'late' => $late,
+            'incoming' => $incoming,
+            'resolved' => $resolved,
+            'closed' => $closed,
+            'in_progress' => $inProgress,
+            'assigned' => $assigned,
             'avg_resolution_hours' => $avgResolutionHours,
             'tickets_per_tech' => $ticketsPerTech,
+        ];
+    }
+    
+    private function countByStatus(array $statusLabels, ?\DateTimeInterface $startDate = null, ?\DateTimeInterface $endDate = null): int
+    {
+        $qb = $this->createQueryBuilder('t')
+            ->select('count(t.id)')
+            ->leftJoin('t.status', 's')
+            ->andWhere('s.label IN (:status)')
+            ->andWhere('t.deletedAt IS NULL')
+            ->setParameter('status', $statusLabels);
+            
+        if ($startDate) {
+            $qb->andWhere('t.createdAt >= :startDate')->setParameter('startDate', $startDate);
+        }
+        if ($endDate) {
+            $qb->andWhere('t.createdAt <= :endDate')->setParameter('endDate', $endDate);
+        }
+        
+        return (int) $qb->getQuery()->getSingleScalarResult();
+    }
+    
+    private function countAssigned(?\DateTimeInterface $startDate = null, ?\DateTimeInterface $endDate = null): int
+    {
+        $qb = $this->createQueryBuilder('t')
+            ->select('count(t.id)')
+            ->where('t.assignee IS NOT NULL')
+            ->andWhere('t.deletedAt IS NULL');
+            
+        if ($startDate) {
+            $qb->andWhere('t.createdAt >= :startDate')->setParameter('startDate', $startDate);
+        }
+        if ($endDate) {
+            $qb->andWhere('t.createdAt <= :endDate')->setParameter('endDate', $endDate);
+        }
+        
+        return (int) $qb->getQuery()->getSingleScalarResult();
+    }
+
+    public function getTicketVolumeOverTime(?\DateTimeInterface $startDate = null, ?\DateTimeInterface $endDate = null): array
+    {
+        $qb = $this->createQueryBuilder('t')
+            ->select("SUBSTRING(t.createdAt, 1, 10) as date, COUNT(t.id) as count")
+            ->andWhere('t.deletedAt IS NULL');
+            
+        if ($startDate) {
+            $qb->andWhere('t.createdAt >= :startDate')->setParameter('startDate', $startDate);
+        }
+        if ($endDate) {
+            $qb->andWhere('t.createdAt <= :endDate')->setParameter('endDate', $endDate);
+        }
+        
+        return $qb->groupBy('date')
+            ->orderBy('date', 'ASC')
+            ->getQuery()
+            ->getArrayResult();
+    }
+
+    public function getStatusDistribution(?\DateTimeInterface $startDate = null, ?\DateTimeInterface $endDate = null): array
+    {
+        $qb = $this->createQueryBuilder('t')
+            ->select('s.label as status, COUNT(t.id) as count')
+            ->leftJoin('t.status', 's')
+            ->andWhere('t.deletedAt IS NULL');
+
+        if ($startDate) {
+            $qb->andWhere('t.createdAt >= :startDate')->setParameter('startDate', $startDate);
+        }
+        if ($endDate) {
+            $qb->andWhere('t.createdAt <= :endDate')->setParameter('endDate', $endDate);
+        }
+
+        return $qb->groupBy('s.id')
+            ->getQuery()
+            ->getArrayResult();
+    }
+
+    public function getAdminStats(): array
+    {
+        $qb = $this->createQueryBuilder('t');
+        $unassigned = $qb->select('count(t.id)')
+            ->where('t.assignee IS NULL')
+            ->andWhere('t.deletedAt IS NULL')
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        $qb = $this->createQueryBuilder('t');
+        $urgent = $qb->select('count(t.id)')
+            ->leftJoin('t.priority', 'p')
+            ->where('p.level = 1') // Assuming Level 1 is Urgent/Critical. If name is 'Urgent', use label.
+            ->andWhere('t.deletedAt IS NULL')
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        // Used active categories count? Or count of tickets in active categories?
+        // "Number of active ticket categories" -> interpreting as Count of distinct categories used in active tickets OR just count of categories? 
+        // User phrasing: "Tickets: Number of active ticket categories."
+        // Let's implement getting distinct categories count from tickets for now, or assume Categories repository call in controller.
+        // If "Number of active ticket categories" means "Category Count", we can get that from CategoryRepository.
+        // If it means "Tickets in active categories", that's basically all tickets?
+        // Let's provide 'urgent' and 'unassigned' here. 
+        
+        return [
+            'unassigned' => $unassigned,
+            'urgent' => $urgent,
         ];
     }
 
@@ -178,5 +358,147 @@ class TicketRepository extends ServiceEntityRepository
             ->orderBy('t.deletedAt', 'DESC')
             ->getQuery()
             ->getResult();
+    }
+    public function getReportVolumeMetrics(\DateTimeInterface $startDate, \DateTimeInterface $endDate): array
+    {
+        $qb = $this->createQueryBuilder('t')
+            ->select('count(t.id)')
+            ->andWhere('t.createdAt >= :start')
+            ->andWhere('t.createdAt <= :end')
+            ->andWhere('t.deletedAt IS NULL')
+            ->setParameter('start', $startDate)
+            ->setParameter('end', $endDate);
+        $newTickets = (int) $qb->getQuery()->getSingleScalarResult();
+
+        $qb = $this->createQueryBuilder('t')
+            ->select('count(t.id)')
+            ->leftJoin('t.status', 's')
+            ->andWhere('s.label IN (:resolved)')
+            ->andWhere('t.updatedAt >= :start') // Approximation: Resolved in this period
+            ->andWhere('t.updatedAt <= :end')
+            ->andWhere('t.deletedAt IS NULL')
+            ->setParameter('start', $startDate)
+            ->setParameter('end', $endDate)
+            ->setParameter('resolved', ['Résolu', 'Fermé', 'Resolved', 'Closed']);
+        $resolvedTickets = (int) $qb->getQuery()->getSingleScalarResult();
+
+        return [
+            'new' => $newTickets,
+            'resolved' => $resolvedTickets,
+            'backlog_growth' => $newTickets - $resolvedTickets
+        ];
+    }
+
+    public function getEfficiencyMetrics(\DateTimeInterface $startDate, \DateTimeInterface $endDate): array
+    {
+         // Avg Resolution Time
+         $qb = $this->createQueryBuilder('t')
+            ->select('t')
+            ->leftJoin('t.status', 's')
+            ->andWhere('s.label IN (:resolved)')
+            ->andWhere('t.updatedAt >= :start')
+            ->andWhere('t.updatedAt <= :end')
+            ->andWhere('t.deletedAt IS NULL')
+            ->setParameter('start', $startDate)
+            ->setParameter('end', $endDate)
+            ->setParameter('resolved', ['Résolu', 'Fermé', 'Resolved', 'Closed']);
+        
+        $resolvedEntities = $qb->getQuery()->getResult();
+        $totalSeconds = 0;
+        $count = 0;
+        foreach ($resolvedEntities as $ticket) {
+             $created = $ticket->getCreatedAt();
+             $updated = $ticket->getUpdatedAt();
+             if ($created && $updated) {
+                 $totalSeconds += ($updated->getTimestamp() - $created->getTimestamp());
+                 $count++;
+             }
+        }
+        $avgResolutionHours = $count > 0 ? round(($totalSeconds / $count) / 3600, 1) : 0;
+
+        // SLA Breach Rate
+        $qb = $this->createQueryBuilder('t')
+            ->where('t.createdAt >= :start')
+            ->andWhere('t.createdAt <= :end')
+            ->andWhere('t.deletedAt IS NULL')
+            ->setParameter('start', $startDate)
+            ->setParameter('end', $endDate);
+        $allPeriodTickets = $qb->getQuery()->getResult();
+        
+        $breachedCount = 0;
+        $totalPeriod = count($allPeriodTickets);
+        $now = new \DateTime();
+        
+        foreach ($allPeriodTickets as $ticket) {
+            $sla = $ticket->getSlaDueAt();
+            if (!$sla) continue;
+            
+            $isResolved = in_array($ticket->getStatus()->getLabel(), ['Résolu', 'Fermé', 'Resolved', 'Closed']);
+            $compareTime = $isResolved ? $ticket->getUpdatedAt() : $now;
+            
+            if ($sla < $compareTime) {
+                $breachedCount++;
+            }
+        }
+        $slaBreachRate = $totalPeriod > 0 ? round(($breachedCount / $totalPeriod) * 100, 1) : 0;
+
+        return [
+            'avg_resolution_hours' => $avgResolutionHours,
+            'sla_breach_rate' => $slaBreachRate,
+            'first_response_time' => 0 
+        ];
+    }
+
+    public function getCategoryBreakdown(\DateTimeInterface $startDate, \DateTimeInterface $endDate): array
+    {
+        return $this->createQueryBuilder('t')
+            ->select('c.label as label, count(t.id) as count')
+            ->leftJoin('t.category', 'c')
+            ->where('t.createdAt >= :start')
+            ->andWhere('t.createdAt <= :end')
+            ->andWhere('t.deletedAt IS NULL')
+            ->groupBy('c.id')
+            ->orderBy('count', 'DESC')
+            ->setMaxResults(3) // Top 3
+            ->setParameter('start', $startDate)
+            ->setParameter('end', $endDate)
+            ->getQuery()
+            ->getArrayResult();
+    }
+
+    public function getPriorityBreakdown(\DateTimeInterface $startDate, \DateTimeInterface $endDate): array
+    {
+         return $this->createQueryBuilder('t')
+            ->select('p.label as label, count(t.id) as count')
+            ->leftJoin('t.priority', 'p')
+            ->where('t.createdAt >= :start')
+            ->andWhere('t.createdAt <= :end')
+            ->andWhere('t.deletedAt IS NULL')
+            ->groupBy('p.id')
+            ->orderBy('p.level', 'ASC')
+            ->setParameter('start', $startDate)
+            ->setParameter('end', $endDate)
+            ->getQuery()
+            ->getArrayResult();
+    }
+
+    public function getTechnicianPerformance(\DateTimeInterface $startDate, \DateTimeInterface $endDate): array
+    {
+        return $this->createQueryBuilder('t')
+            ->select('u.name as name, count(t.id) as count')
+            ->leftJoin('t.assignee', 'u')
+            ->leftJoin('t.status', 's')
+            ->where('s.label IN (:resolved)') // Solved tickets
+            ->andWhere('t.updatedAt >= :start') // Solved in period
+            ->andWhere('t.updatedAt <= :end')
+            ->andWhere('t.assignee IS NOT NULL')
+            ->andWhere('t.deletedAt IS NULL')
+            ->groupBy('u.id')
+            ->orderBy('count', 'DESC')
+            ->setParameter('start', $startDate)
+            ->setParameter('end', $endDate)
+            ->setParameter('resolved', ['Résolu', 'Fermé', 'Resolved', 'Closed'])
+            ->getQuery()
+            ->getArrayResult();
     }
 }

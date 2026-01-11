@@ -3,7 +3,14 @@ framework:
     secret: '%env(APP_SECRET)%'
 
     # Note that the session will be started ONLY if you read or write from it.
-    session: true
+    session:
+        handler_id: session.handler.native_file
+        storage_factory_id: session.storage.factory.native
+        save_path: '%kernel.project_dir%/var/sessions/%kernel.environment%'
+        cookie_lifetime: 604800 # 1 week
+        gc_maxlifetime: 604800
+        cookie_secure: auto
+        cookie_samesite: lax
 
     #esi: true
     #fragments: true

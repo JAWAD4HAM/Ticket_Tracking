@@ -33,7 +33,7 @@ class HelpdeskController extends AbstractController
         4 => 72,
     ];
     #[Route('/', name: 'app_dashboard')]
-    public function dashboard(TicketRepository $ticketRepository): Response
+    public function dashboard(TicketRepository $ticketRepository, EntityManagerInterface $entityManager): Response
     {
         $user = $this->getUser();
         
@@ -42,23 +42,65 @@ class HelpdeskController extends AbstractController
             return $this->redirectToRoute('app_login');
         }
 
+        if ($this->isGranted('ROLE_ADMIN')) {
+            $userRepo = $entityManager->getRepository(User::class);
+            $categoryRepo = $entityManager->getRepository(\App\Entity\Category::class);
+            
+            $adminStats = [
+                'total_users' => $userRepo->countAll(),
+                'tech_users' => $userRepo->countByRole('TECH'),
+                'active_categories' => $categoryRepo->count([]), 
+            ];
+            
+            $ticketStats = $ticketRepository->getAdminStats();
+
+            return $this->render('dashboard/admin.html.twig', [
+                'stats' => array_merge($adminStats, $ticketStats),
+            ]);
+        }
+
         if ($this->isGranted('ROLE_MANAGER')) {
-            $stats = array_merge([
-                'total' => 0,
-                'open' => 0,
-                'unassigned' => 0,
-                'assigned' => 0,
-                'in_progress' => 0,
-                'resolved' => 0,
-                'closed' => 0,
-                'late' => 0,
-                'incoming' => 0,
-                'avg_resolution_hours' => null,
-                'tickets_per_tech' => [],
-            ], $ticketRepository->getManagerStats());
+            $request = $this->container->get('request_stack')->getCurrentRequest();
+            $period = $request->query->get('period', '7_days');
+            $startDate = null;
+            $endDate = new \DateTime('now');
+
+            switch ($period) {
+                case '7_days':
+                    $startDate = new \DateTime('-7 days');
+                    break;
+                case '30_days':
+                    $startDate = new \DateTime('-30 days');
+                    break;
+                case 'this_month':
+                    $startDate = new \DateTime('first day of this month 00:00:00');
+                    break;
+                case 'last_month':
+                    $startDate = new \DateTime('first day of last month 00:00:00');
+                    $endDate = new \DateTime('last day of last month 23:59:59');
+                    break;
+                case 'all_time':
+                    $startDate = null;
+                    break;
+                default:
+                    // Default to 7 days if invalid
+                    $startDate = new \DateTime('-7 days');
+            }
+            if ($startDate) $startDate->setTime(0, 0, 0);
+            if ($endDate) $endDate->setTime(23, 59, 59);
+
+            $stats = $ticketRepository->getManagerStats($startDate, $endDate);
+            $volumeData = $ticketRepository->getTicketVolumeOverTime($startDate, $endDate);
+            $statusData = $ticketRepository->getStatusDistribution($startDate, $endDate);
+
             return $this->render('dashboard/manager.html.twig', [
                 'stats' => $stats,
                 'recent_tickets' => $ticketRepository->findAllSorted(10),
+                'chart_data' => [
+                    'volume' => $volumeData,
+                    'status' => $statusData
+                ],
+                'current_period' => $period,
             ]);
         }
 
@@ -516,6 +558,47 @@ class HelpdeskController extends AbstractController
 
         $redirectRoute = $this->isGranted('ROLE_TECH') ? 'app_ticket' : 'app_dashboard';
         return $this->redirectToRoute($redirectRoute);
+    }
+
+    #[Route('/settings/password', name: 'app_settings_password', methods: ['POST'])]
+    public function changePassword(Request $request, UserPasswordHasherInterface $passwordHasher, EntityManagerInterface $entityManager): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_USER');
+
+        $user = $this->getUser();
+        if (!$user instanceof User) {
+            throw $this->createAccessDeniedException('You must be logged in.');
+        }
+
+        if (!$this->isCsrfTokenValid('settings_password', (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Invalid CSRF token.');
+        }
+
+        $currentPassword = (string) $request->request->get('current_password');
+        $newPassword = (string) $request->request->get('new_password');
+        $confirmPassword = (string) $request->request->get('confirm_password');
+
+        if (!$passwordHasher->isPasswordValid($user, $currentPassword)) {
+            $this->addFlash('error', 'Current password is incorrect.');
+            return $this->redirectToRoute('app_settings');
+        }
+
+        if (empty($newPassword) || strlen($newPassword) < 6) {
+            $this->addFlash('error', 'New password must be at least 6 characters long.');
+            return $this->redirectToRoute('app_settings');
+        }
+
+        if ($newPassword !== $confirmPassword) {
+            $this->addFlash('error', 'New passwords do not match.');
+            return $this->redirectToRoute('app_settings');
+        }
+
+        $user->setPassword($passwordHasher->hashPassword($user, $newPassword));
+        $entityManager->flush();
+
+        $this->addFlash('success', 'Password changed successfully.');
+
+        return $this->redirectToRoute('app_settings');
     }
 
     #[Route('/settings', name: 'app_settings', methods: ['GET', 'POST'])]

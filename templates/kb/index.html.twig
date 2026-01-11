@@ -1,0 +1,55 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'Knowledge Base'|trans }}{% endblock %}
+
+{% block body %}
+    <div class="card">
+        <div class="card-header" style="margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;">
+            <h3 class="card-title">{{ 'Knowledge Base'|trans }}</h3>
+            {% if is_granted('ROLE_TECH') %}
+                <a href="{{ path('app_kb_manage') }}" class="btn btn-secondary">{{ 'Manage Articles'|trans }}</a>
+            {% endif %}
+        </div>
+
+        <form method="get" action="{{ path('app_kb_index') }}" style="margin-bottom: 1.5rem; display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center;">
+            <input type="text" name="q" value="{{ searchTerm }}" placeholder="{{ 'Search articles...'|trans }}" class="input" style="flex-grow: 1; min-width: 200px;">
+            <select name="category" class="select" style="min-width: 160px;">
+                <option value="">{{ 'All Categories'|trans }}</option>
+                {% for category in categories %}
+                    <option value="{{ category.id }}" {% if currentCategory == category.id %}selected{% endif %}>
+                        {{ category.label }}
+                    </option>
+                {% endfor %}
+            </select>
+            <button class="btn btn-primary" type="submit">{{ 'Search'|trans }}</button>
+            <a class="btn btn-secondary" href="{{ path('app_kb_index') }}" style="text-decoration: none;">{{ 'Clear'|trans }}</a>
+        </form>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem;">
+            {% for article in articles %}
+                <div style="border: 1px solid #e5e7eb; border-radius: 0.5rem; padding: 1.5rem; background-color: white; transition: box-shadow 0.2s;">
+                    <h4 style="margin-top: 0; margin-bottom: 0.5rem; font-size: 1.125rem;">
+                        <a href="{{ path('app_kb_show', {id: article.id}) }}" style="color: #1F2937; text-decoration: none; font-weight: 600;">
+                            {{ article.title }}
+                        </a>
+                    </h4>
+                    <div style="font-size: 0.875rem; color: #6B7280; margin-bottom: 1rem;">
+                        <span style="background-color: #F3F4F6; padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem;">
+                            {{ article.category ? article.category.label : 'Uncategorized' }}
+                        </span>
+                        <span style="margin-left: 0.5rem;">
+                            {{ article.updatedAt ? article.updatedAt|date('M d, Y') : article.createdAt|date('M d, Y') }}
+                        </span>
+                    </div>
+                    <p style="color: #4B5563; font-size: 0.875rem; line-height: 1.5; margin-bottom: 0;">
+                        {{ article.content|striptags|slice(0, 150) }}...
+                    </p>
+                </div>
+            {% else %}
+                <div style="grid-column: 1 / -1; text-align: center; padding: 2rem; color: #6B7280;">
+                    {{ 'No articles found matching your criteria.'|trans }}
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}
