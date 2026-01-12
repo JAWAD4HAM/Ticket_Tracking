@@ -66,7 +66,8 @@ class TicketRepository extends ServiceEntityRepository
         ?int $priorityId,
         ?\DateTimeInterface $fromDate,
         ?\DateTimeInterface $toDate,
-        $assignee = null
+        $assignee = null,
+        ?string $filterType = null
     ): array {
         $qb = $this->createQueryBuilder('t')
             ->leftJoin('t.status', 's')
@@ -87,8 +88,17 @@ class TicketRepository extends ServiceEntityRepository
 
         if ($assignee === 'unassigned') {
             $qb->andWhere('t.assignee IS NULL');
+        } elseif ($assignee === 'assigned') {
+            $qb->andWhere('t.assignee IS NOT NULL');
         } elseif ($assignee) {
             $qb->andWhere('t.assignee = :assignee')->setParameter('assignee', $assignee);
+        }
+
+        if ($filterType === 'late') {
+            $qb->andWhere('t.slaDueAt < :now')
+               ->andWhere('s.label NOT IN (:closedStatuses)')
+               ->setParameter('now', new \DateTime())
+               ->setParameter('closedStatuses', ['Résolu', 'Fermé', 'Resolved', 'Closed']);
         }
 
         if ($fromDate) {
@@ -130,65 +140,63 @@ class TicketRepository extends ServiceEntityRepository
         }
         $unassigned = $qb->getQuery()->getSingleScalarResult();
 
-        $qb = $this->createQueryBuilder('t');
-        $qb->select('count(t.id)')
-            ->leftJoin('t.status', 's')
-            ->andWhere('s.label IN (:open)')
-            ->andWhere('t.deletedAt IS NULL')
-            ->setParameter('open', ['Ouvert', 'En cours', 'Open', 'In progress', 'In Progress']);
-        if ($startDate) {
-            $qb->andWhere('t.createdAt >= :startDate')->setParameter('startDate', $startDate);
-        }
-        if ($endDate) {
-            $qb->andWhere('t.createdAt <= :endDate')->setParameter('endDate', $endDate);
-        }
-        $open = $qb->getQuery()->getSingleScalarResult();
+        // Open Tickets (Strictly Open, not In Progress)
+    $qb = $this->createQueryBuilder('t');
+    $qb->select('count(t.id)')
+        ->leftJoin('t.status', 's')
+        ->andWhere('s.label IN (:open)')
+        ->andWhere('t.deletedAt IS NULL')
+        ->setParameter('open', ['Ouvert', 'Open']);
+    if ($startDate) {
+        $qb->andWhere('t.createdAt >= :startDate')->setParameter('startDate', $startDate);
+    }
+    if ($endDate) {
+        $qb->andWhere('t.createdAt <= :endDate')->setParameter('endDate', $endDate);
+    }
+    $open = $qb->getQuery()->getSingleScalarResult();
 
-        // Late Tickets (SLA exceeded) - Usually implies current state is late. 
-        // Or should this be "tickets created in period that are now late"? 
-        // Let's assume stats for "Current Dashboard" usually reflect CURRENT snapshot of tickets matching filter.
-        // But "Late" is a property of open tickets. 
-        // Let's filter late tickets by creation date too? Or just showing current late count?
-        // Usually dashboards show "Late Tickets" as "Currently Late". 
-        // If we filter by "Last Month", do we mean "Tickets created last month that are currently late"?
-        // Yes, let's stick to creation date window for consistency.
-        $qb = $this->createQueryBuilder('t');
-        $qb->select('count(t.id)')
-            ->leftJoin('t.status', 's')
-            ->where('t.slaDueAt < :now')
-            ->andWhere('s.label NOT IN (:closed)')
-            ->andWhere('t.deletedAt IS NULL')
-            ->setParameter('now', new \DateTime())
-            ->setParameter('closed', ['Résolu', 'Fermé', 'Resolved', 'Closed']);
-        if ($startDate) {
-            $qb->andWhere('t.createdAt >= :startDate')->setParameter('startDate', $startDate);
-        }
-        if ($endDate) {
-            $qb->andWhere('t.createdAt <= :endDate')->setParameter('endDate', $endDate);
-        }
-        $late = $qb->getQuery()->getSingleScalarResult();
+    // Late Tickets (SLA exceeded)
+    $qb = $this->createQueryBuilder('t');
+    $qb->select('count(t.id)')
+        ->leftJoin('t.status', 's')
+        ->where('t.slaDueAt < :now')
+        ->andWhere('s.label NOT IN (:closed)')
+        ->andWhere('t.deletedAt IS NULL')
+        ->setParameter('now', new \DateTime())
+        ->setParameter('closed', ['Résolu', 'Fermé', 'Resolved', 'Closed']);
+    if ($startDate) {
+        $qb->andWhere('t.createdAt >= :startDate')->setParameter('startDate', $startDate);
+    }
+    if ($endDate) {
+        $qb->andWhere('t.createdAt <= :endDate')->setParameter('endDate', $endDate);
+    }
+    $late = $qb->getQuery()->getSingleScalarResult();
 
-        // Incoming Tickets (Created in range) - Redundant with Total if Total means Created in range.
-        // But usually "Incoming" implies recent flow. In a dashboard with a filter, "Total" = "Incoming across period".
-        // Let's reuse Total.
-        $incoming = $total;
+    // Incoming Tickets (Last 7 Days Fixed)
+    $sevenDaysAgo = new \DateTime('-7 days');
+    $qb = $this->createQueryBuilder('t');
+    $qb->select('count(t.id)')
+       ->andWhere('t.deletedAt IS NULL')
+       ->andWhere('t.createdAt >= :sevenDaysAgo')
+       ->setParameter('sevenDaysAgo', $sevenDaysAgo);
+    $incoming = $qb->getQuery()->getSingleScalarResult();
 
 
-        // Resolved Tickets
-        $qb = $this->createQueryBuilder('t')
-            ->select('t')
-            ->leftJoin('t.status', 's')
-            ->andWhere('s.label IN (:resolved)')
-            ->andWhere('t.deletedAt IS NULL')
-            ->setParameter('resolved', ['Résolu', 'Fermé', 'Resolved', 'Closed']);
-        if ($startDate) {
-            $qb->andWhere('t.createdAt >= :startDate')->setParameter('startDate', $startDate);
-        }
-        if ($endDate) {
-            $qb->andWhere('t.createdAt <= :endDate')->setParameter('endDate', $endDate);
-        }
-        $resolvedTicketsEntities = $qb->getQuery()->getResult();
-        $resolved = count($resolvedTicketsEntities);
+    // Resolved Tickets (Strictly Resolved, not Closed)
+    $qb = $this->createQueryBuilder('t')
+        ->select('t')
+        ->leftJoin('t.status', 's')
+        ->andWhere('s.label IN (:resolved)')
+        ->andWhere('t.deletedAt IS NULL')
+        ->setParameter('resolved', ['Résolu', 'Resolved']);
+    if ($startDate) {
+        $qb->andWhere('t.createdAt >= :startDate')->setParameter('startDate', $startDate);
+    }
+    if ($endDate) {
+        $qb->andWhere('t.createdAt <= :endDate')->setParameter('endDate', $endDate);
+    }
+    $resolvedTicketsEntities = $qb->getQuery()->getResult();
+    $resolved = count($resolvedTicketsEntities);
 
         // Avg Resolution Time
         $totalSeconds = 0;

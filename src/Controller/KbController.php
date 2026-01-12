@@ -21,6 +21,7 @@ class KbController extends AbstractController
     {
         $keyword = $request->query->get('q');
         $categoryId = $request->query->get('category');
+        $categoryId = $categoryId ? (int) $categoryId : null;
 
         $articles = $kbArticleRepository->searchByKeywordAndCategory($keyword, $categoryId);
         $categories = $categoryRepository->findAll();

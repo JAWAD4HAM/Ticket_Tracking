@@ -63,7 +63,7 @@ class KbArticleRepository extends ServiceEntityRepository
             ->setParameter('published', true);
 
         if ($keyword) {
-            $qb->andWhere('k.title LIKE :keyword OR k.content LIKE :keyword')
+            $qb->andWhere('LOWER(k.title) LIKE LOWER(:keyword) OR LOWER(k.content) LIKE LOWER(:keyword)')
                ->setParameter('keyword', '%' . $keyword . '%');
         }
 

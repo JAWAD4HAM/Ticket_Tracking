@@ -113,6 +113,10 @@ class HelpdeskController extends AbstractController
                     'status' => $statusData
                 ],
                 'current_period' => $period,
+                'date_filter' => [
+                    'from' => $startDate ? $startDate->format('Y-m-d') : null,
+                    'to' => $endDate ? $endDate->format('Y-m-d') : null,
+                ],
             ]);
         }
 
@@ -186,6 +190,7 @@ class HelpdeskController extends AbstractController
         $toFilter = $request->query->get('to');
 
         $assigneeFilter = $request->query->get('assignee');
+        $specialFilter = $request->query->get('filter');
 
         $fromDate = $this->parseDateFilter($fromFilter);
         $toDate = $this->parseDateFilter($toFilter, true);
@@ -195,25 +200,49 @@ class HelpdeskController extends AbstractController
             $priorityFilter ? (int) $priorityFilter : null,
             $fromDate,
             $toDate,
-            $assigneeFilter
+            $assigneeFilter,
+            $specialFilter
         );
 
         $statuses = $entityManager->getRepository(Status::class)->findAll();
         $priorities = $entityManager->getRepository(Priority::class)->findAll();
-        $deletedTickets = $this->isGranted('ROLE_ADMIN')
+        $deletedTickets = ($this->isGranted('ROLE_ADMIN') || $this->isGranted('ROLE_MANAGER'))
             ? $ticketRepository->findDeletedAll()
             : $ticketRepository->findDeletedByCreator($this->getUser());
 
-        return $this->render('ticket.html.twig', [
-            'tickets' => $tickets,
-            'statuses' => $statuses,
-            'priorities' => $priorities,
-            'deleted_tickets' => $deletedTickets,
-            'simple_mode' => $request->query->get('simple_mode'),
-            'page_title' => $assigneeFilter === 'unassigned' ? 'Unassigned Tickets' : ($priorityFilter ? 'Urgent Tickets' : 'All Tickets'),
-            'filters' => [
-                'status' => $statusFilter,
-                'priority' => $priorityFilter,
+        $pageTitle = 'All Tickets';
+    if ($assigneeFilter === 'unassigned') {
+        $pageTitle = 'Unassigned Tickets';
+    } elseif ($assigneeFilter === 'assigned') {
+        $pageTitle = 'Assigned Tickets';
+    } elseif ($priorityFilter) {
+        $pageTitle = 'Urgent Tickets';
+    } elseif ($specialFilter === 'late') {
+        $pageTitle = 'Late Tickets';
+    } elseif ($statusFilter === 'Ouvert') {
+        $pageTitle = 'Open Tickets';
+    } elseif ($statusFilter === 'En cours') {
+        $pageTitle = 'Tickets en cours';
+    } elseif ($statusFilter === 'Résolu') {
+        $pageTitle = 'Resolved Tickets';
+    } elseif ($statusFilter === 'Fermé') {
+        $pageTitle = 'Closed Tickets';
+    } elseif ($request->query->get('from')) {
+        $pageTitle = 'Incoming Tickets';
+    } elseif ($statusFilter) {
+        $pageTitle = $statusFilter . ' Tickets';
+    }
+
+    return $this->render('ticket.html.twig', [
+        'tickets' => $tickets,
+        'statuses' => $statuses,
+        'priorities' => $priorities,
+        'deleted_tickets' => $deletedTickets,
+        'simple_mode' => $request->query->get('simple_mode'),
+        'page_title' => $pageTitle,
+        'filters' => [
+            'status' => $statusFilter,
+            'priority' => $priorityFilter,
                 'from' => $fromFilter,
                 'to' => $toFilter,
             ],
@@ -425,7 +454,7 @@ class HelpdeskController extends AbstractController
             throw $this->createAccessDeniedException('You must be logged in.');
         }
 
-        $canDelete = $this->isGranted('ROLE_ADMIN')
+        $canDelete = $this->isGranted('ROLE_ADMIN') || $this->isGranted('ROLE_MANAGER')
             || ($ticket->getCreator() && $ticket->getCreator()->getId() === $user->getId());
 
         if (!$canDelete) {
@@ -459,7 +488,7 @@ class HelpdeskController extends AbstractController
             throw $this->createAccessDeniedException('You must be logged in.');
         }
 
-        $canRestore = $this->isGranted('ROLE_ADMIN')
+        $canRestore = $this->isGranted('ROLE_ADMIN') || $this->isGranted('ROLE_MANAGER')
             || ($ticket->getCreator() && $ticket->getCreator()->getId() === $user->getId());
 
         if (!$canRestore) {
@@ -493,7 +522,7 @@ class HelpdeskController extends AbstractController
             throw $this->createAccessDeniedException('You must be logged in.');
         }
 
-        $canDelete = $this->isGranted('ROLE_ADMIN')
+        $canDelete = $this->isGranted('ROLE_ADMIN') || $this->isGranted('ROLE_MANAGER')
             || ($ticket->getCreator() && $ticket->getCreator()->getId() === $user->getId());
 
         if (!$canDelete) {
@@ -526,7 +555,7 @@ class HelpdeskController extends AbstractController
             throw $this->createAccessDeniedException('You must be logged in.');
         }
 
-        $tickets = $this->isGranted('ROLE_ADMIN')
+        $tickets = ($this->isGranted('ROLE_ADMIN') || $this->isGranted('ROLE_MANAGER'))
             ? $ticketRepository->findDeletedAll()
             : $ticketRepository->findDeletedByCreator($user);
 
@@ -559,7 +588,7 @@ class HelpdeskController extends AbstractController
             throw $this->createAccessDeniedException('You must be logged in.');
         }
 
-        $tickets = $this->isGranted('ROLE_ADMIN')
+        $tickets = ($this->isGranted('ROLE_ADMIN') || $this->isGranted('ROLE_MANAGER'))
             ? $ticketRepository->findDeletedAll()
             : $ticketRepository->findDeletedByCreator($user);
 
@@ -841,6 +870,8 @@ class HelpdeskController extends AbstractController
 
         if ($endOfDay) {
             $date->setTime(23, 59, 59);
+        } else {
+            $date->setTime(0, 0, 0);
         }
 
         return $date;

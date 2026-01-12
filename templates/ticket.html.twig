@@ -45,7 +45,7 @@
                             <td>{{ ticket.deletedAt ? ticket.deletedAt|date('M d, Y H:i') : '-' }}</td>
                             <td>
                                 <a href="{{ path('app_ticket_show', {id: ticket.id}) }}" style="color: #3B82F6;">{{ 'View'|trans }}</a>
-                                {% set can_restore = is_granted('ROLE_ADMIN') or (ticket.creator and app.user and ticket.creator.id == app.user.id) %}
+                                {% set can_restore = is_granted('ROLE_ADMIN') or is_granted('ROLE_MANAGER') or (ticket.creator and app.user and ticket.creator.id == app.user.id) %}
                                 {% if can_restore %}
                                     <form method="post" action="{{ path('app_ticket_restore', {id: ticket.id}) }}" style="display: inline;">
                                         <input type="hidden" name="_token" value="{{ csrf_token('ticket_restore_' ~ ticket.id) }}">
@@ -144,7 +144,7 @@
                             </td>
                             <td>
                                 <a href="{{ path('app_ticket_show', {id: ticket.id}) }}" style="color: #3B82F6;">{{ 'View'|trans }}</a>
-                                {% set can_delete = is_granted('ROLE_ADMIN') or (ticket.creator and app.user and ticket.creator.id == app.user.id) %}
+                                {% set can_delete = is_granted('ROLE_ADMIN') or is_granted('ROLE_MANAGER') or (ticket.creator and app.user and ticket.creator.id == app.user.id) %}
                                 {% if can_delete %}
                                     <form method="post" action="{{ path('app_ticket_delete', {id: ticket.id}) }}" style="display: inline;">
                                         <input type="hidden" name="_token" value="{{ csrf_token('ticket_delete_' ~ ticket.id) }}">

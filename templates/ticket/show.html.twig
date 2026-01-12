@@ -177,7 +177,7 @@
                     <button type="submit" class="btn btn-primary">{{ 'Pick Up Ticket'|trans }}</button>
                 </form>
             {% endif %}
-            {% set can_delete = not ticket.deletedAt and (is_granted('ROLE_ADMIN') or (ticket.creator and app.user and ticket.creator.id == app.user.id)) %}
+            {% set can_delete = not ticket.deletedAt and (is_granted('ROLE_ADMIN') or is_granted('ROLE_MANAGER') or (ticket.creator and app.user and ticket.creator.id == app.user.id)) %}
             {% if can_delete %}
                 <form method="post" action="{{ path('app_ticket_delete', {id: ticket.id}) }}">
                     <input type="hidden" name="_token" value="{{ csrf_token('ticket_delete_' ~ ticket.id) }}">

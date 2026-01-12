@@ -16,51 +16,146 @@
     </form>
 </div>
 
-<div class="manager-dashboard">
-    <aside class="manager-rail">
-        <div class="tile-card rail-card tile-amber">
+<div class="manager-dashboard" style="display: flex; flex-direction: column; gap: 2rem;">
+    <!-- Top Cards Section -->
+    <section class="manager-tiles" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem;">
+        {# 1. Total Tickets #}
+        <a href="{{ path('app_ticket', {'simple_mode': 1, 'from': date_filter.from, 'to': date_filter.to}) }}" class="tile-card tile-amber" style="text-decoration: none; cursor: pointer;">
             <span class="tile-icon"><i class="fa-solid fa-ticket"></i></span>
             <div class="tile-value">{{ stats.total }}</div>
             <div class="tile-label">{{ 'Total Tickets'|trans }}</div>
-        </div>
-        <div class="tile-card rail-card tile-orange">
-            <span class="tile-icon"><i class="fa-solid fa-clock"></i></span>
-            <div class="tile-value">{{ stats.late }}</div>
-            <div class="tile-label">{{ 'Late Tickets'|trans }}</div>
-        </div>
-        <div class="tile-card rail-card tile-rose">
+        </a>
+
+        {# 2. Assigned Tickets #}
+        <a href="{{ path('app_ticket', {'assignee': 'assigned', 'simple_mode': 1, 'from': date_filter.from, 'to': date_filter.to}) }}" class="tile-card tile-blue" style="text-decoration: none; cursor: pointer;">
+            <span class="tile-icon"><i class="fa-solid fa-user-check"></i></span>
+            <div class="tile-value">{{ stats.assigned }}</div>
+            <div class="tile-label">{{ 'Assigned Tickets'|trans }}</div>
+        </a>
+
+        {# 3. Unassigned Tickets #}
+        <a href="{{ path('app_ticket', {'assignee': 'unassigned', 'simple_mode': 1, 'from': date_filter.from, 'to': date_filter.to}) }}" class="tile-card tile-rose" style="text-decoration: none; cursor: pointer;">
             <span class="tile-icon"><i class="fa-solid fa-triangle-exclamation"></i></span>
             <div class="tile-value">{{ stats.unassigned }}</div>
             <div class="tile-label">{{ 'Unassigned Tickets'|trans }}</div>
-        </div>
-    </aside>
+        </a>
 
-    <section class="manager-canvas">
-        <div class="manager-top">
-            <div class="card chart-card">
-                <div class="chart-header">
-                    <div>
-                        <h3 class="chart-title">{{ 'Ticket Volume'|trans }}</h3>
-                        <p class="chart-subtitle">{{ 'Daily ticket creation'|trans }}</p>
-                    </div>
-                </div>
-                <div class="chart-body" style="height: 250px; position: relative;">
-                    <canvas id="volumeChart"></canvas>
+        {# 4. Open Tickets #}
+        <a href="{{ path('app_ticket', {'status': 'Ouvert', 'simple_mode': 1, 'from': date_filter.from, 'to': date_filter.to}) }}" class="tile-card tile-amber" style="text-decoration: none; cursor: pointer;">
+            <span class="tile-icon"><i class="fa-solid fa-folder-open"></i></span>
+            <div class="tile-value">{{ stats.open }}</div>
+            <div class="tile-label">{{ 'Open Tickets'|trans }}</div>
+        </a>
+
+        {# 5. Tickets in Progress #}
+        <a href="{{ path('app_ticket', {'status': 'En cours', 'simple_mode': 1, 'from': date_filter.from, 'to': date_filter.to}) }}" class="tile-card tile-indigo" style="text-decoration: none; cursor: pointer;">
+            <span class="tile-icon"><i class="fa-solid fa-spinner"></i></span>
+            <div class="tile-value">{{ stats.in_progress }}</div>
+            <div class="tile-label">{{ 'Tickets en cours'|trans }}</div>
+        </a>
+
+        {# 6. Resolved Tickets #}
+        <a href="{{ path('app_ticket', {'status': 'Résolu', 'simple_mode': 1, 'from': date_filter.from, 'to': date_filter.to}) }}" class="tile-card tile-emerald" style="text-decoration: none; cursor: pointer;">
+            <span class="tile-icon"><i class="fa-solid fa-circle-check"></i></span>
+            <div class="tile-value">{{ stats.resolved }}</div>
+            <div class="tile-label">{{ 'Resolved Tickets'|trans }}</div>
+        </a>
+
+        {# 7. Closed Tickets #}
+        <a href="{{ path('app_ticket', {'status': 'Fermé', 'simple_mode': 1, 'from': date_filter.from, 'to': date_filter.to}) }}" class="tile-card tile-slate" style="text-decoration: none; cursor: pointer;">
+            <span class="tile-icon"><i class="fa-solid fa-lock"></i></span>
+            <div class="tile-value">{{ stats.closed }}</div>
+            <div class="tile-label">{{ 'Closed Tickets'|trans }}</div>
+        </a>
+
+        {# 8. Late Tickets #}
+        <a href="{{ path('app_ticket', {'filter': 'late', 'simple_mode': 1, 'from': date_filter.from, 'to': date_filter.to}) }}" class="tile-card tile-orange" style="text-decoration: none; cursor: pointer;">
+            <span class="tile-icon"><i class="fa-solid fa-clock"></i></span>
+            <div class="tile-value">{{ stats.late }}</div>
+            <div class="tile-label">{{ 'Late Tickets'|trans }}</div>
+        </a>
+
+        {# 9. Incoming Tickets 7 Days #}
+        <a href="{{ path('app_ticket', {'from': date()|date_modify('-7 days')|date('Y-m-d'), 'simple_mode': 1}) }}" class="tile-card tile-green" style="text-decoration: none; cursor: pointer;">
+            <span class="tile-icon"><i class="fa-solid fa-inbox"></i></span>
+            <div class="tile-value">{{ stats.incoming }}</div>
+            <div class="tile-label">{{ 'Incoming Tickets'|trans }}</div>
+            <div class="tile-meta">{{ 'Last 7 days'|trans }}</div>
+        </a>
+
+        {# 10. Avg Resolution #}
+        <div class="tile-card tile-purple">
+            <span class="tile-icon"><i class="fa-solid fa-stopwatch"></i></span>
+            <div class="tile-value">{{ stats.avg_resolution_hours is not null ? stats.avg_resolution_hours : '-' }}</div>
+            <div class="tile-label">{{ 'Avg Resolution (hrs)'|trans }}</div>
+        </div>
+    </section>
+
+    <!-- Charts Section -->
+    <div class="manager-charts" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;">
+        <div class="card chart-card">
+            <div class="chart-header">
+                <div>
+                    <h3 class="chart-title">{{ 'Ticket Volume'|trans }}</h3>
+                    <p class="chart-subtitle">{{ 'Daily ticket creation'|trans }}</p>
                 </div>
             </div>
-
-            <div class="card chart-card">
-                <div class="chart-header">
-                    <div>
-                        <h3 class="chart-title">{{ 'Status Distribution'|trans }}</h3>
-                        <p class="chart-subtitle">{{ 'Tickets by status'|trans }}</p>
-                    </div>
-                </div>
-                <div class="chart-body" style="height: 250px; position: relative;">
-                    <canvas id="statusChart"></canvas>
-                </div>
+            <div class="chart-body" style="height: 300px; position: relative;">
+                <canvas id="volumeChart"></canvas>
             </div>
         </div>
+
+        <div class="card chart-card">
+            <div class="chart-header">
+                <div>
+                    <h3 class="chart-title">{{ 'Status Distribution'|trans }}</h3>
+                    <p class="chart-subtitle">{{ 'Tickets by status'|trans }}</p>
+                </div>
+            </div>
+            <div class="chart-body" style="height: 300px; position: relative;">
+                <canvas id="statusChart"></canvas>
+            </div>
+        </div>
+
+        <div class="card panel-card">
+            <div class="card-header">
+                <h3 class="card-title">{{ 'Workload by Technician'|trans }}</h3>
+            </div>
+            <div class="table-container">
+                <table class="styled-table">
+                    <thead>
+                        <tr>
+                            <th>{{ 'Technician'|trans }}</th>
+                            <th>{{ 'Assigned Tickets'|trans }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in stats.tickets_per_tech %}
+                            <tr>
+                                <td>{{ row.name }}</td>
+                                <td>{{ row.total }}</td>
+                            </tr>
+                        {% else %}
+                            <tr><td colspan="2">{{ 'No assigned tickets yet.'|trans }}</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card panel-card">
+            <div class="card-header">
+                <h3 class="card-title">{{ 'Resolution Pace'|trans }}</h3>
+            </div>
+            <div class="ring-stat" style="height: 300px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                <div class="ring">
+                    <span>{{ stats.avg_resolution_hours is not null ? stats.avg_resolution_hours : '-' }}</span>
+                </div>
+                <p style="margin-top: 1rem;">{{ 'Average resolution time in hours'|trans }}</p>
+            </div>
+        </div>
+    </div>
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 document.addEventListener('turbo:load', function() {
@@ -115,134 +210,54 @@ document.addEventListener('turbo:load', function() {
 });
 </script>
 
-        <div class="manager-tiles">
-            <div class="tile-card tile-green">
-                <span class="tile-icon"><i class="fa-solid fa-inbox"></i></span>
-                <div class="tile-value">{{ stats.incoming }}</div>
-                <div class="tile-label">{{ 'Incoming Tickets'|trans }}</div>
-                <div class="tile-meta">{{ 'Last 7 days'|trans }}</div>
-            </div>
-            <div class="tile-card tile-blue">
-                <span class="tile-icon"><i class="fa-solid fa-user-check"></i></span>
-                <div class="tile-value">{{ stats.assigned }}</div>
-                <div class="tile-label">{{ 'Assigned Tickets'|trans }}</div>
-            </div>
-            <div class="tile-card tile-indigo">
-                <span class="tile-icon"><i class="fa-solid fa-spinner"></i></span>
-                <div class="tile-value">{{ stats.in_progress }}</div>
-                <div class="tile-label">{{ 'In Progress'|trans }}</div>
-            </div>
-            <div class="tile-card tile-amber">
-                <span class="tile-icon"><i class="fa-solid fa-folder-open"></i></span>
-                <div class="tile-value">{{ stats.open }}</div>
-                <div class="tile-label">{{ 'Open Tickets'|trans }}</div>
-            </div>
-            <div class="tile-card tile-emerald">
-                <span class="tile-icon"><i class="fa-solid fa-circle-check"></i></span>
-                <div class="tile-value">{{ stats.resolved }}</div>
-                <div class="tile-label">{{ 'Resolved Tickets'|trans }}</div>
-            </div>
-            <div class="tile-card tile-slate">
-                <span class="tile-icon"><i class="fa-solid fa-lock"></i></span>
-                <div class="tile-value">{{ stats.closed }}</div>
-                <div class="tile-label">{{ 'Closed Tickets'|trans }}</div>
-            </div>
-            <div class="tile-card tile-purple">
-                <span class="tile-icon"><i class="fa-solid fa-stopwatch"></i></span>
-                <div class="tile-value">{{ stats.avg_resolution_hours is not null ? stats.avg_resolution_hours : '-' }}</div>
-                <div class="tile-label">{{ 'Avg Resolution (hrs)'|trans }}</div>
-            </div>
-        </div>
-    </section>
-</div>
-
-<div class="manager-bottom">
-    <div class="card panel-card">
+    <div class="card" style="margin-top: 2rem;">
         <div class="card-header">
-            <h3 class="card-title">{{ 'Workload by Technician'|trans }}</h3>
+            <h3 class="card-title">{{ 'All Recent Tickets'|trans }}</h3>
         </div>
         <div class="table-container">
             <table class="styled-table">
                 <thead>
                     <tr>
-                        <th>{{ 'Technician'|trans }}</th>
-                        <th>{{ 'Assigned Tickets'|trans }}</th>
+                        <th>{{ 'ID'|trans }}</th>
+                        <th>{{ 'Subject'|trans }}</th>
+                        <th>{{ 'Creator'|trans }}</th>
+                        <th>{{ 'Assignee'|trans }}</th>
+                        <th>{{ 'Status'|trans }}</th>
+                        <th>{{ 'Date'|trans }}</th>
+                        <th>{{ 'Action'|trans }}</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for row in stats.tickets_per_tech %}
+                    {% for ticket in recent_tickets %}
                         <tr>
-                            <td>{{ row.name }}</td>
-                            <td>{{ row.total }}</td>
+                            <td>#{{ ticket.id }}</td>
+                            <td>{{ ticket.title }}</td>
+                            <td>{{ ticket.creator.name|default('Unknown'|trans) }}</td>
+                            <td>{{ ticket.assignee.name|default('Unassigned'|trans) }}</td>
+                            <td>
+                                {% set statusLabel = ticket.status.label|default('Unknown'|trans) %}
+                                <span class="status-badge {{ statusLabel in ['Ouvert', 'En cours', 'Open', 'In progress', 'In Progress'] ? 'status-open' : 'status-closed' }}">
+                                    {{ statusLabel }}
+                                </span>
+                            </td>
+                            <td>{{ ticket.createdAt|date('Y-m-d H:i') }}</td>
+                            <td>
+                                <a href="{{ path('app_ticket_show', {id: ticket.id}) }}" style="color: #3B82F6;">{{ 'View'|trans }}</a>
+                                {% set can_delete = is_granted('ROLE_ADMIN') or is_granted('ROLE_MANAGER') or (ticket.creator and app.user and ticket.creator.id == app.user.id) %}
+                                {% if can_delete %}
+                                    <form method="post" action="{{ path('app_ticket_delete', {id: ticket.id}) }}" style="display: inline;">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('ticket_delete_' ~ ticket.id) }}">
+                                        <button type="submit" style="margin-left: 0.5rem; color: #DC2626; background: none; border: none; padding: 0; cursor: pointer;">{{ 'Delete'|trans }}</button>
+                                    </form>
+                                {% endif %}
+                            </td>
                         </tr>
                     {% else %}
-                        <tr><td colspan="2">{{ 'No assigned tickets yet.'|trans }}</td></tr>
+                        <tr><td colspan="7">{{ 'No tickets found.'|trans }}</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
-    </div>
-
-    <div class="card panel-card">
-        <div class="card-header">
-            <h3 class="card-title">{{ 'Resolution Pace'|trans }}</h3>
-        </div>
-        <div class="ring-stat">
-            <div class="ring">
-                <span>{{ stats.avg_resolution_hours is not null ? stats.avg_resolution_hours : '-' }}</span>
-            </div>
-            <p>{{ 'Average resolution time in hours'|trans }}</p>
-        </div>
-    </div>
-</div>
-
-<div class="card">
-    <div class="card-header">
-        <h3 class="card-title">{{ 'All Recent Tickets'|trans }}</h3>
-    </div>
-    <div class="table-container">
-        <table class="styled-table">
-            <thead>
-                <tr>
-                    <th>{{ 'ID'|trans }}</th>
-                    <th>{{ 'Subject'|trans }}</th>
-                    <th>{{ 'Creator'|trans }}</th>
-                    <th>{{ 'Assignee'|trans }}</th>
-                    <th>{{ 'Status'|trans }}</th>
-                    <th>{{ 'Date'|trans }}</th>
-                    <th>{{ 'Action'|trans }}</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for ticket in recent_tickets %}
-                    <tr>
-                        <td>#{{ ticket.id }}</td>
-                        <td>{{ ticket.title }}</td>
-                        <td>{{ ticket.creator.name|default('Unknown'|trans) }}</td>
-                        <td>{{ ticket.assignee.name|default('Unassigned'|trans) }}</td>
-                        <td>
-                            {% set statusLabel = ticket.status.label|default('Unknown'|trans) %}
-                            <span class="status-badge {{ statusLabel in ['Ouvert', 'En cours', 'Open', 'In progress', 'In Progress'] ? 'status-open' : 'status-closed' }}">
-                                {{ statusLabel }}
-                            </span>
-                        </td>
-                        <td>{{ ticket.createdAt|date('Y-m-d H:i') }}</td>
-                        <td>
-                            <a href="{{ path('app_ticket_show', {id: ticket.id}) }}" style="color: #3B82F6;">{{ 'View'|trans }}</a>
-                            {% set can_delete = is_granted('ROLE_ADMIN') or (ticket.creator and app.user and ticket.creator.id == app.user.id) %}
-                            {% if can_delete %}
-                                <form method="post" action="{{ path('app_ticket_delete', {id: ticket.id}) }}" style="display: inline;">
-                                    <input type="hidden" name="_token" value="{{ csrf_token('ticket_delete_' ~ ticket.id) }}">
-                                    <button type="submit" style="margin-left: 0.5rem; color: #DC2626; background: none; border: none; padding: 0; cursor: pointer;">{{ 'Delete'|trans }}</button>
-                                </form>
-                            {% endif %}
-                        </td>
-                    </tr>
-                {% else %}
-                    <tr><td colspan="7">{{ 'No tickets found.'|trans }}</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
     </div>
 </div>
 {% endblock %}
