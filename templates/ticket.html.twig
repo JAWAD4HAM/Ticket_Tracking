@@ -4,9 +4,11 @@
 
 {% block body %}
     <div style="display: flex; justify-content: flex-end; margin-bottom: 1rem;">
+        {% if not simple_mode %}
         <button type="button" class="btn btn-secondary" onclick="var t=document.getElementById('trash-bin-container');var l=document.getElementById('all-tickets-container');if(t.style.display==='none'){t.style.display='block';l.style.display='none';}else{t.style.display='none';l.style.display='block';}" style="padding: 0.5rem 1rem;" title="{{ 'Toggle Trash Bin'|trans }}">
             <i class="fa-solid fa-trash"></i>
         </button>
+        {% endif %}
     </div>
 <div id="trash-bin-container" style="display: none;">
     <div class="card" style="margin-bottom: 1.5rem;">
@@ -69,12 +71,13 @@
 
     <div class="card" id="all-tickets-container">
         <div class="card-header" style="margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;">
-            <h3 class="card-title">{{ 'All Tickets'|trans }}</h3>
-             {% if is_granted('ROLE_USER') and not is_granted('ROLE_TECH') %}
+            <h3 class="card-title">{{ page_title|default('All Tickets')|trans }}</h3>
+             {% if is_granted('ROLE_USER') and not is_granted('ROLE_TECH') and not simple_mode %}
                 <a href="{{ path('app_ticket_create') }}" style="font-size: 0.875rem; color: #3B82F6; text-decoration: none; font-weight: 600;">{{ '+ New Ticket'|trans }}</a>
             {% endif %}
         </div>
 
+        {% if not simple_mode %}
         <form method="get" action="{{ path('app_ticket') }}" style="margin-bottom: 1rem; display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center;">
             <select name="status" class="select" style="min-width: 160px;">
                 <option value="">{{ 'All Statuses'|trans }}</option>
@@ -97,6 +100,7 @@
             <button class="btn btn-primary" type="submit">{{ 'Filter'|trans }}</button>
             <a class="btn btn-secondary" href="{{ path('app_ticket') }}" style="text-decoration: none;">{{ 'Clear'|trans }}</a>
         </form>
+        {% endif %}
         
         <div class="table-container">
             <table class="styled-table">

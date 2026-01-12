@@ -53,9 +53,21 @@ class HelpdeskController extends AbstractController
             ];
             
             $ticketStats = $ticketRepository->getAdminStats();
+            
+            // Fetch Urgent Priority ID
+            $priorityRepo = $entityManager->getRepository(Priority::class);
+            $urgentPriority = $priorityRepo->findOneBy(['label' => 'Urgent']);
+
+            $ticketStats = $ticketRepository->getAdminStats();
+            
+            // Fetch Urgent Priority ID
+            $priorityRepo = $entityManager->getRepository(Priority::class);
+            $urgentPriority = $priorityRepo->findOneBy(['label' => 'Urgent']);
 
             return $this->render('dashboard/admin.html.twig', [
                 'stats' => array_merge($adminStats, $ticketStats),
+                'urgent_priority_id' => $urgentPriority ? $urgentPriority->getId() : null,
+                'simple_mode' => true, 
             ]);
         }
 
@@ -141,7 +153,7 @@ class HelpdeskController extends AbstractController
                 ?? $statusRepository->findOneBy([], ['id' => 'ASC']);
 
             if (!$status) {
-                $form->addError(new FormError('No status found. Please add a status in admin settings.'));
+                $form->addError(new FormError('Aucun statut trouvé. Veuillez ajouter un statut dans les paramètres administrateur.'));
             } else {
                 $ticket->setStatus($status);
                 $ticket->setSlaDueAt($this->calculateSlaDueAt($ticket->getPriority()));
@@ -150,7 +162,7 @@ class HelpdeskController extends AbstractController
 
                 $this->handleAttachments($ticket, $form->get('attachments')->getData(), $entityManager);
 
-                $this->addFlash('success', 'Ticket created successfully!');
+                $this->addFlash('success', 'Ticket créé avec succès !');
 
                 return $this->redirectToRoute('app_dashboard');
             }
@@ -173,6 +185,8 @@ class HelpdeskController extends AbstractController
         $fromFilter = $request->query->get('from');
         $toFilter = $request->query->get('to');
 
+        $assigneeFilter = $request->query->get('assignee');
+
         $fromDate = $this->parseDateFilter($fromFilter);
         $toDate = $this->parseDateFilter($toFilter, true);
 
@@ -180,7 +194,8 @@ class HelpdeskController extends AbstractController
             $statusFilter ?: null,
             $priorityFilter ? (int) $priorityFilter : null,
             $fromDate,
-            $toDate
+            $toDate,
+            $assigneeFilter
         );
 
         $statuses = $entityManager->getRepository(Status::class)->findAll();
@@ -194,6 +209,8 @@ class HelpdeskController extends AbstractController
             'statuses' => $statuses,
             'priorities' => $priorities,
             'deleted_tickets' => $deletedTickets,
+            'simple_mode' => $request->query->get('simple_mode'),
+            'page_title' => $assigneeFilter === 'unassigned' ? 'Unassigned Tickets' : ($priorityFilter ? 'Urgent Tickets' : 'All Tickets'),
             'filters' => [
                 'status' => $statusFilter,
                 'priority' => $priorityFilter,
@@ -226,7 +243,7 @@ class HelpdeskController extends AbstractController
             $entityManager->persist($user);
             $entityManager->flush();
             
-            $this->addFlash('success', 'User created successfully!');
+            $this->addFlash('success', 'Utilisateur créé avec succès !');
 
             return $this->redirectToRoute('app_dashboard');
         }
@@ -285,7 +302,7 @@ class HelpdeskController extends AbstractController
             }
 
             if (!$comment->getContent()) {
-                $this->addFlash('warning', 'Comment cannot be empty.');
+                $this->addFlash('warning', 'Le commentaire ne peut pas être vide.');
                 return $this->redirectToRoute('app_ticket_show', ['id' => $ticket->getId()]);
             }
 
@@ -299,9 +316,9 @@ class HelpdeskController extends AbstractController
             $ticket->setUpdatedAt(new \DateTime());
             $entityManager->flush();
 
-            $this->addFlash('success', 'Comment added.');
+            $this->addFlash('success', 'Commentaire ajouté.');
         } else {
-            $this->addFlash('warning', 'Unable to add comment.');
+            $this->addFlash('warning', 'Impossible d\'ajouter le commentaire.');
         }
 
         return $this->redirectToRoute('app_ticket_show', ['id' => $ticket->getId()]);
@@ -322,7 +339,7 @@ class HelpdeskController extends AbstractController
         $status = $statusId ? $entityManager->getRepository(Status::class)->find($statusId) : null;
 
         if (!$status) {
-            $this->addFlash('warning', 'Please choose a valid status.');
+            $this->addFlash('warning', 'Veuillez choisir un statut valide.');
             return $this->redirectToRoute('app_ticket_show', ['id' => $ticket->getId()]);
         }
 
@@ -330,7 +347,7 @@ class HelpdeskController extends AbstractController
         $ticket->setUpdatedAt(new \DateTime());
         $entityManager->flush();
 
-        $this->addFlash('success', 'Ticket status updated.');
+        $this->addFlash('success', 'Statut du ticket mis à jour.');
 
         return $this->redirectToRoute('app_ticket_show', ['id' => $ticket->getId()]);
     }
@@ -350,7 +367,7 @@ class HelpdeskController extends AbstractController
         $assignee = $assigneeId ? $userRepository->find($assigneeId) : null;
 
         if ($assignee && !in_array($assignee->getDbRole(), ['TECH', 'MANAGER'], true)) {
-            $this->addFlash('warning', 'Selected user is not assignable.');
+            $this->addFlash('warning', 'L\'utilisateur sélectionné n\'est pas assignable.');
             return $this->redirectToRoute('app_ticket_show', ['id' => $ticket->getId()]);
         }
 
@@ -358,7 +375,7 @@ class HelpdeskController extends AbstractController
         $ticket->setUpdatedAt(new \DateTime());
         $entityManager->flush();
 
-        $this->addFlash('success', 'Ticket assignment updated.');
+        $this->addFlash('success', 'Affectation du ticket mise à jour.');
 
         return $this->redirectToRoute('app_ticket_show', ['id' => $ticket->getId()]);
     }
@@ -375,7 +392,7 @@ class HelpdeskController extends AbstractController
         $this->assertTicketNotDeleted($ticket);
 
         if ($ticket->getAssignee()) {
-            $this->addFlash('warning', 'Ticket is already assigned.');
+            $this->addFlash('warning', 'Le ticket est déjà assigné.');
             return $this->redirectToRoute('app_dashboard');
         }
 
@@ -390,7 +407,7 @@ class HelpdeskController extends AbstractController
         
         $entityManager->flush();
 
-        $this->addFlash('success', 'Ticket assigned to you.');
+        $this->addFlash('success', 'Ticket assigné à vous.');
         return $this->redirectToRoute('app_ticket_show', ['id' => $ticket->getId()]);
     }
 
@@ -416,12 +433,12 @@ class HelpdeskController extends AbstractController
         }
 
         if ($ticket->getDeletedAt()) {
-            $this->addFlash('warning', 'Ticket is already in the trash.');
+            $this->addFlash('warning', 'Le ticket est déjà dans la corbeille.');
         } else {
             $ticket->setDeletedAt(new \DateTime());
             $ticket->setUpdatedAt(new \DateTime());
             $entityManager->flush();
-            $this->addFlash('success', 'Ticket moved to trash.');
+            $this->addFlash('success', 'Ticket déplacé dans la corbeille.');
         }
 
         $redirectRoute = $this->isGranted('ROLE_TECH') ? 'app_ticket' : 'app_dashboard';
@@ -450,12 +467,12 @@ class HelpdeskController extends AbstractController
         }
 
         if (!$ticket->getDeletedAt()) {
-            $this->addFlash('warning', 'Ticket is not in the trash.');
+            $this->addFlash('warning', 'Le ticket n\'est pas dans la corbeille.');
         } else {
             $ticket->setDeletedAt(null);
             $ticket->setUpdatedAt(new \DateTime());
             $entityManager->flush();
-            $this->addFlash('success', 'Ticket restored.');
+            $this->addFlash('success', 'Ticket restauré.');
         }
 
         $redirectRoute = $this->isGranted('ROLE_TECH') ? 'app_ticket' : 'app_dashboard';
@@ -484,11 +501,11 @@ class HelpdeskController extends AbstractController
         }
 
         if (!$ticket->getDeletedAt()) {
-            $this->addFlash('warning', 'Ticket must be in the trash first.');
+            $this->addFlash('warning', 'Le ticket doit d\'abord être dans la corbeille.');
         } else {
             $this->purgeTicket($ticket, $entityManager);
             $entityManager->flush();
-            $this->addFlash('success', 'Ticket permanently deleted.');
+            $this->addFlash('success', 'Ticket supprimé définitivement.');
         }
 
         $redirectRoute = $this->isGranted('ROLE_TECH') ? 'app_ticket' : 'app_dashboard';
@@ -514,14 +531,14 @@ class HelpdeskController extends AbstractController
             : $ticketRepository->findDeletedByCreator($user);
 
         if (!$tickets) {
-            $this->addFlash('warning', 'Trash is already empty.');
+            $this->addFlash('warning', 'La corbeille est déjà vide.');
         } else {
             foreach ($tickets as $ticket) {
                 $ticket->setDeletedAt(null);
                 $ticket->setUpdatedAt(new \DateTime());
             }
             $entityManager->flush();
-            $this->addFlash('success', 'All tickets restored.');
+            $this->addFlash('success', 'Tous les tickets ont été restaurés.');
         }
 
         $redirectRoute = $this->isGranted('ROLE_TECH') ? 'app_ticket' : 'app_dashboard';
@@ -547,13 +564,13 @@ class HelpdeskController extends AbstractController
             : $ticketRepository->findDeletedByCreator($user);
 
         if (!$tickets) {
-            $this->addFlash('warning', 'Trash is already empty.');
+            $this->addFlash('warning', 'La corbeille est déjà vide.');
         } else {
             foreach ($tickets as $ticket) {
                 $this->purgeTicket($ticket, $entityManager);
             }
             $entityManager->flush();
-            $this->addFlash('success', 'Trash emptied.');
+            $this->addFlash('success', 'Corbeille vidée.');
         }
 
         $redirectRoute = $this->isGranted('ROLE_TECH') ? 'app_ticket' : 'app_dashboard';
@@ -579,24 +596,24 @@ class HelpdeskController extends AbstractController
         $confirmPassword = (string) $request->request->get('confirm_password');
 
         if (!$passwordHasher->isPasswordValid($user, $currentPassword)) {
-            $this->addFlash('error', 'Current password is incorrect.');
+            $this->addFlash('error', 'Le mot de passe actuel est incorrect.');
             return $this->redirectToRoute('app_settings');
         }
 
         if (empty($newPassword) || strlen($newPassword) < 6) {
-            $this->addFlash('error', 'New password must be at least 6 characters long.');
+            $this->addFlash('error', 'Le nouveau mot de passe doit comporter au moins 6 caractères.');
             return $this->redirectToRoute('app_settings');
         }
 
         if ($newPassword !== $confirmPassword) {
-            $this->addFlash('error', 'New passwords do not match.');
+            $this->addFlash('error', 'Les nouveaux mots de passe ne correspondent pas.');
             return $this->redirectToRoute('app_settings');
         }
 
         $user->setPassword($passwordHasher->hashPassword($user, $newPassword));
         $entityManager->flush();
 
-        $this->addFlash('success', 'Password changed successfully.');
+        $this->addFlash('success', 'Mot de passe modifié avec succès.');
 
         return $this->redirectToRoute('app_settings');
     }
@@ -620,25 +637,13 @@ class HelpdeskController extends AbstractController
             if ($displayName !== '') {
                 $user->setName($displayName);
             } else {
-                $this->addFlash('warning', 'Display name cannot be empty.');
+                $this->addFlash('warning', 'Le nom d\'affichage ne peut pas être vide.');
             }
 
-            $theme = (string) $request->request->get('theme');
-            if (in_array($theme, ['light', 'dark', 'system'], true)) {
-                $user->setTheme($theme);
-            } else {
-                $this->addFlash('warning', 'Invalid theme selection.');
-            }
 
-            $locale = (string) $request->request->get('locale');
-            if (in_array($locale, ['en', 'fr'], true)) {
-                $user->setLocale($locale);
-            } else {
-                $this->addFlash('warning', 'Invalid language selection.');
-            }
 
             $entityManager->flush();
-            $this->addFlash('success', 'Settings updated.');
+            $this->addFlash('success', 'Paramètres mis à jour.');
 
             return $this->redirectToRoute('app_settings');
         }
@@ -647,12 +652,26 @@ class HelpdeskController extends AbstractController
     }
 
     #[Route('/admin/users', name: 'app_admin_users')]
-    public function users(UserRepository $userRepository): Response
+    public function users(Request $request, UserRepository $userRepository): Response
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
         
+        $roleFilter = $request->query->get('role');
+        $users = $roleFilter 
+            ? $userRepository->findBy(['role' => strtoupper($roleFilter)]) 
+            : $userRepository->findAll();
+
+        $pageTitle = 'User Management';
+        if ($roleFilter === 'TECH') {
+            $pageTitle = 'Technicians';
+        } elseif ($request->query->get('simple_mode')) {
+            $pageTitle = 'Total Users';
+        }
+
         return $this->render('admin/users.html.twig', [
-            'users' => $userRepository->findAll(),
+            'users' => $users,
+            'simple_mode' => $request->query->get('simple_mode'),
+            'page_title' => $pageTitle,
         ]);
     }
 
@@ -680,7 +699,7 @@ class HelpdeskController extends AbstractController
             }
 
             $entityManager->flush();
-            $this->addFlash('success', 'User updated successfully.');
+            $this->addFlash('success', 'Utilisateur mis à jour avec succès.');
 
             return $this->redirectToRoute('app_admin_users');
         }
@@ -702,16 +721,16 @@ class HelpdeskController extends AbstractController
 
         $currentUser = $this->getUser();
         if ($currentUser instanceof User && $currentUser->getId() === $user->getId()) {
-            $this->addFlash('warning', 'You cannot delete your own account.');
+            $this->addFlash('warning', 'Vous ne pouvez pas supprimer votre propre compte.');
             return $this->redirectToRoute('app_admin_users');
         }
 
         try {
             $entityManager->remove($user);
             $entityManager->flush();
-            $this->addFlash('success', 'User deleted.');
+            $this->addFlash('success', 'Utilisateur supprimé.');
         } catch (ForeignKeyConstraintViolationException) {
-            $this->addFlash('warning', 'User is assigned to tickets and cannot be deleted.');
+            $this->addFlash('warning', 'L\'utilisateur est assigné à des tickets et ne peut pas être supprimé.');
         }
 
         return $this->redirectToRoute('app_admin_users');

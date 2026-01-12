@@ -2,7 +2,7 @@
 <nav class="sidebar">
     <div class="brand">
         <img src="{{ asset('images/logo.png') }}" class="logo-light" alt="Helpio Logo" style="max-width: 150px; height: auto;">
-        <img src="{{ asset('images/logo-dark.png') }}" class="logo-dark" alt="Helpio Logo" style="max-width: 150px; height: auto;">
+
     </div>
     <ul class="nav-menu">
 
@@ -53,7 +53,7 @@
         </li>
         {% endif %}
 
-        {% if is_granted('ROLE_MANAGER') %}
+        {% if is_granted('ROLE_MANAGER') and not is_granted('ROLE_ADMIN') %}
         <li>
             <a href="{{ path('app_report_monthly') }}" class="nav-link">
                 <i class="fa-solid fa-file-csv sidebar-icon"></i> {{ 'Monthly Report'|trans }}

@@ -40,4 +40,18 @@ class CategoryRepository extends ServiceEntityRepository
     //            ->getOneOrNullResult()
     //        ;
     //    }
+    /**
+     * @return array[] Returns an array of arrays with 'category' and 'count' keys
+     */
+    public function findAllWithTicketCount(): array
+    {
+        return $this->createQueryBuilder('c')
+            ->select('c as category, count(t.id) as count')
+            ->leftJoin('App\Entity\Ticket', 't', 'WITH', 't.category = c')
+            ->andWhere('t.deletedAt IS NULL') // Only count active tickets
+            ->groupBy('c.id')
+            ->orderBy('count', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
 }

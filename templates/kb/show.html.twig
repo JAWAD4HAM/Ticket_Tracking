@@ -15,7 +15,7 @@
             <div style="display: flex; align-items: center; gap: 1rem; color: #6B7280; font-size: 0.875rem;">
                 <span>
                     <i class="fa-regular fa-folder"></i> 
-                    {{ article.category ? article.category.label : 'Uncategorized' }}
+                    {{ article.category ? article.category.label : 'Uncategorized'|trans }}
                 </span>
                 <span>
                     <i class="fa-regular fa-clock"></i>
@@ -23,7 +23,7 @@
                 </span>
                 <span>
                     <i class="fa-regular fa-user"></i>
-                    {{ article.author ? article.author.name : 'Unknown' }}
+                    {{ article.author ? article.author.name : 'Unknown'|trans }}
                 </span>
                 {% if not article.isPublished %}
                     <span style="background-color: #FEF3C7; color: #92400E; padding: 0.125rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem; border: 1px solid #FCD34D;">

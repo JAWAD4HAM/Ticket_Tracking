@@ -11,14 +11,14 @@
     <section class="manager-tiles" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
         
         {# Card 1: Total Users #}
-        <a href="{{ path('app_admin_users') }}" class="tile-card tile-blue" style="text-decoration: none; cursor: pointer;">
+        <a href="{{ path('app_admin_users', {'simple_mode': 1}) }}" class="tile-card tile-blue" style="text-decoration: none; cursor: pointer;">
             <span class="tile-icon"><i class="fa-solid fa-users"></i></span>
             <div class="tile-value">{{ stats.total_users }}</div>
             <div class="tile-label">{{ 'Total Users'|trans }}</div>
         </a>
 
         {# Card 2: Technicians #}
-        <a href="{{ path('app_admin_users') }}" class="tile-card tile-indigo" style="text-decoration: none; cursor: pointer;">
+        <a href="{{ path('app_admin_users', {'role': 'TECH', 'simple_mode': 1}) }}" class="tile-card tile-indigo" style="text-decoration: none; cursor: pointer;">
             <span class="tile-icon"><i class="fa-solid fa-user-gear"></i></span>
             <div class="tile-value">{{ stats.tech_users }}</div>
             <div class="tile-label">{{ 'Technicians'|trans }}</div>
@@ -27,27 +27,21 @@
         {# Card 3: Active Ticket Categories #}
         {# User requested "Number of active ticket categories" -> I'll pass category count #}
         {# Assuming this links to config or ticket list filtered by category? Keeping config for now. #}
-        <a href="{{ path('app_admin_config') }}" class="tile-card tile-emerald" style="text-decoration: none; cursor: pointer;">
+        <a href="{{ path('app_admin_config', {'view': 'categories'}) }}" class="tile-card tile-emerald" style="text-decoration: none; cursor: pointer;">
             <span class="tile-icon"><i class="fa-solid fa-layer-group"></i></span>
             <div class="tile-value">{{ stats.active_categories }}</div>
             <div class="tile-label">{{ 'Active Ticket Categories'|trans }}</div>
         </a>
     
         {# Card 4: Urgent Tickets #}
-        {# Assuming linking to All Tickets with Priority=1 (Urgent). Need to verify Priority ID/Level mapping in production. #}
-        {# We generally assume ID 4 or Level 4 or similar. I'll link to filtered list if possible, or just all tickets for now #}
-        {# The query param ?priority=4 might work if 4 is Urgent. Let's assume user will check filter manually if not perfect #}
-        {# Actually, in step 207 I assumed level=1 is urgent for stats. #}
-        <a href="{{ path('app_ticket', {'priority': 1}) }}" class="tile-card tile-rose" style="text-decoration: none; cursor: pointer;">
+        <a href="{{ urgent_priority_id ? path('app_ticket', {'priority': urgent_priority_id, 'simple_mode': 1}) : '#' }}" class="tile-card tile-rose" style="text-decoration: none; cursor: pointer;">
             <span class="tile-icon"><i class="fa-solid fa-triangle-exclamation"></i></span>
             <div class="tile-value">{{ stats.urgent }}</div>
             <div class="tile-label">{{ 'Urgent Tickets'|trans }}</div>
         </a>
 
         {# Card 5: Unassigned Tickets #}
-        {# Need to support unassigned filter in controller or just link to all for now #}
-        {# I'll add a query param 'assignee=unassigned' support later, for now linking to general list #}
-        <a href="{{ path('app_ticket') }}" class="tile-card tile-slate" style="text-decoration: none; cursor: pointer;">
+        <a href="{{ path('app_ticket', {'assignee': 'unassigned', 'simple_mode': 1}) }}" class="tile-card tile-slate" style="text-decoration: none; cursor: pointer;">
             <span class="tile-icon"><i class="fa-solid fa-user-xmark"></i></span>
             <div class="tile-value">{{ stats.unassigned }}</div>
             <div class="tile-label">{{ 'Unassigned Tickets'|trans }}</div>

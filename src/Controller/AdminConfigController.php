@@ -71,10 +71,19 @@ class AdminConfigController extends AbstractController
             return $this->redirectToRoute('app_admin_config');
         }
 
+        $view = $request->query->get('view');
+        $categoryRepo = $entityManager->getRepository(Category::class);
+        
+        $categoriesData = ($view === 'categories') 
+            ? $categoryRepo->findAllWithTicketCount() // Returns array of ['category' => Entity, 'count' => int]
+            : $categoryRepo->findAll(); // Returns array of Entities
+
         return $this->render('admin/config.html.twig', [
-            'categories' => $entityManager->getRepository(Category::class)->findAll(),
+            'categories_data' => $categoriesData, // Renamed variable to avoid confusion
             'priorities' => $entityManager->getRepository(Priority::class)->findAll(),
             'statuses' => $entityManager->getRepository(Status::class)->findAll(),
+            'view' => $view,
+            'page_title' => $view === 'categories' ? 'Active Ticket Categories' : null,
         ]);
     }
 

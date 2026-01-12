@@ -65,7 +65,8 @@ class TicketRepository extends ServiceEntityRepository
         ?string $statusLabel,
         ?int $priorityId,
         ?\DateTimeInterface $fromDate,
-        ?\DateTimeInterface $toDate
+        ?\DateTimeInterface $toDate,
+        $assignee = null
     ): array {
         $qb = $this->createQueryBuilder('t')
             ->leftJoin('t.status', 's')
@@ -82,6 +83,12 @@ class TicketRepository extends ServiceEntityRepository
 
         if ($priorityId) {
             $qb->andWhere('p.id = :priority')->setParameter('priority', $priorityId);
+        }
+
+        if ($assignee === 'unassigned') {
+            $qb->andWhere('t.assignee IS NULL');
+        } elseif ($assignee) {
+            $qb->andWhere('t.assignee = :assignee')->setParameter('assignee', $assignee);
         }
 
         if ($fromDate) {
@@ -319,20 +326,21 @@ class TicketRepository extends ServiceEntityRepository
             ->getSingleScalarResult();
 
         $qb = $this->createQueryBuilder('t');
-        $urgent = $qb->select('count(t.id)')
+        $urgentQ = $qb->select('count(t.id) as count, p.id as priority_id')
             ->leftJoin('t.priority', 'p')
-            ->where('p.level = 1') // Assuming Level 1 is Urgent/Critical. If name is 'Urgent', use label.
+            ->where('p.label = :label') // Use Label 'Urgent'
+            ->setParameter('label', 'Urgent')
             ->andWhere('t.deletedAt IS NULL')
+            ->groupBy('p.id')
             ->getQuery()
-            ->getSingleScalarResult();
+            ->getOneOrNullResult(); // Might be null if no urgent tickets
 
-        // Used active categories count? Or count of tickets in active categories?
-        // "Number of active ticket categories" -> interpreting as Count of distinct categories used in active tickets OR just count of categories? 
-        // User phrasing: "Tickets: Number of active ticket categories."
-        // Let's implement getting distinct categories count from tickets for now, or assume Categories repository call in controller.
-        // If "Number of active ticket categories" means "Category Count", we can get that from CategoryRepository.
-        // If it means "Tickets in active categories", that's basically all tickets?
-        // Let's provide 'urgent' and 'unassigned' here. 
+        $urgent = $urgentQ ? $urgentQ['count'] : 0;
+        
+        // We need the ID even if count is 0, so let's find the Priority entity separately if needed,
+        // or just return what we found. If we found nothing, we can't link to it easily without querying Priority repo.
+        // It's better to fetch the ID in the Controller from PriorityRepository to be safe, but let's try to return what we have.
+        // Actually, let's just return the count here, and let the Controller fetch the Priority ID.
         
         return [
             'unassigned' => $unassigned,

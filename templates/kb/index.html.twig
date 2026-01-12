@@ -35,7 +35,7 @@
                     </h4>
                     <div style="font-size: 0.875rem; color: #6B7280; margin-bottom: 1rem;">
                         <span style="background-color: #F3F4F6; padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem;">
-                            {{ article.category ? article.category.label : 'Uncategorized' }}
+                            {{ article.category ? article.category.label : 'Uncategorized'|trans }}
                         </span>
                         <span style="margin-left: 0.5rem;">
                             {{ article.updatedAt ? article.updatedAt|date('M d, Y') : article.createdAt|date('M d, Y') }}

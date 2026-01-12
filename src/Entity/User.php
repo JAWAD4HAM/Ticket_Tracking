@@ -167,4 +167,24 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
         return $this;
     }
+
+    public function __serialize(): array
+    {
+        return [
+            $this->id,
+            $this->email,
+            $this->password,
+            $this->role,
+        ];
+    }
+
+    public function __unserialize(array $data): void
+    {
+        if (count($data) === 4) {
+             [$this->id, $this->email, $this->password, $this->role] = $data;
+        } else {
+             // fallback for older serialized data if schema changed
+             [$this->id, $this->email, $this->password] = $data;
+        }
+    }
 }

@@ -19,7 +19,7 @@ class TicketType extends AbstractType
     {
         $builder
             ->add('title', TextType::class, [
-                'label' => 'Title',
+                'label' => 'Ticket Title', // Will be translated by form theme if using 'trans' filter or if I use keys
                 'attr' => ['class' => 'form-control']
             ])
             ->add('description', TextareaType::class, [
