@@ -88,6 +88,11 @@ class KbController extends AbstractController
     #[IsGranted('ROLE_TECH')]
     public function edit(Request $request, KbArticle $kbArticle, EntityManagerInterface $entityManager, CategoryRepository $categoryRepository): Response
     {
+        $user = $this->getUser();
+        if (!$this->isGranted('ROLE_MANAGER') && $kbArticle->getAuthor() !== $user) {
+            throw $this->createAccessDeniedException('You can only edit your own articles.');
+        }
+
         if ($request->isMethod('POST')) {
             $kbArticle->setTitle($request->request->get('title'));
             $kbArticle->setContent($request->request->get('content'));
@@ -117,6 +122,11 @@ class KbController extends AbstractController
     #[IsGranted('ROLE_TECH')]
     public function delete(Request $request, KbArticle $kbArticle, EntityManagerInterface $entityManager): Response
     {
+        $user = $this->getUser();
+        if (!$this->isGranted('ROLE_MANAGER') && $kbArticle->getAuthor() !== $user) {
+            throw $this->createAccessDeniedException('You can only delete your own articles.');
+        }
+
         if ($this->isCsrfTokenValid('delete'.$kbArticle->getId(), $request->request->get('_token'))) {
             $entityManager->remove($kbArticle);
             $entityManager->flush();

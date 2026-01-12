@@ -44,11 +44,14 @@
                             </td>
                             <td>{{ article.updatedAt ? article.updatedAt|date('M d, Y H:i') : article.createdAt|date('M d, Y H:i') }}</td>
                             <td>
-                                <a href="{{ path('app_kb_edit', {id: article.id}) }}" style="color: #3B82F6; margin-right: 0.5rem;">{{ 'Edit'|trans }}</a>
-                                <form method="post" action="{{ path('app_kb_delete', {id: article.id}) }}" style="display: inline;" onsubmit="return confirm('{{ 'Are you sure you want to delete this article?'|trans }}');">
-                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ article.id) }}">
-                                    <button type="submit" style="color: #DC2626; background: none; border: none; padding: 0; cursor: pointer;">{{ 'Delete'|trans }}</button>
-                                </form>
+                                {% set can_edit = is_granted('ROLE_MANAGER') or (article.author and app.user and article.author.id == app.user.id) %}
+                                {% if can_edit %}
+                                    <a href="{{ path('app_kb_edit', {id: article.id}) }}" style="color: #3B82F6; margin-right: 0.5rem;">{{ 'Edit'|trans }}</a>
+                                    <form method="post" action="{{ path('app_kb_delete', {id: article.id}) }}" style="display: inline;" onsubmit="return confirm('{{ 'Are you sure you want to delete this article?'|trans }}');">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ article.id) }}">
+                                        <button type="submit" style="color: #DC2626; background: none; border: none; padding: 0; cursor: pointer;">{{ 'Delete'|trans }}</button>
+                                    </form>
+                                {% endif %}
                             </td>
                         </tr>
                     {% else %}
