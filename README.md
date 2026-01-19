@@ -1,4 +1,4 @@
-# Helpio
+# HelpioAdd
 A modern, feature-rich helpdesk ticketing system built with Symfony, designed to streamline support operations with comprehensive ticket management, knowledge base, and reporting capabilities.
 
 ## Features

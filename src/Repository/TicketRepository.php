@@ -67,7 +67,8 @@ class TicketRepository extends ServiceEntityRepository
         ?\DateTimeInterface $fromDate,
         ?\DateTimeInterface $toDate,
         $assignee = null,
-        ?string $filterType = null
+        ?string $filterType = null,
+        ?\App\Entity\User $viewingTech = null
     ): array {
         $qb = $this->createQueryBuilder('t')
             ->leftJoin('t.status', 's')
@@ -77,6 +78,12 @@ class TicketRepository extends ServiceEntityRepository
             ->leftJoin('t.assignee', 'a')
             ->addSelect('s', 'p', 'c', 'cr', 'a')
             ->andWhere('t.deletedAt IS NULL');
+
+        if ($viewingTech) {
+             // Technician sees: Unassigned OR Assigned to themselves
+             $qb->andWhere('(t.assignee IS NULL OR t.assignee = :viewingTech)')
+                ->setParameter('viewingTech', $viewingTech);
+        }
 
         if ($statusLabel) {
             $qb->andWhere('s.label = :status')->setParameter('status', $statusLabel);

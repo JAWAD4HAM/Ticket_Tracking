@@ -37,7 +37,8 @@
             {{ article.content|nl2br }}
         </div>
 
-        {% if is_granted('ROLE_TECH') %}
+        {% set can_edit = is_granted('ROLE_MANAGER') or (article.author and app.user and article.author.id == app.user.id) %}
+        {% if can_edit %}
             <div style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #e5e7eb;">
                 <a href="{{ path('app_kb_edit', {id: article.id}) }}" class="btn btn-secondary">
                     <i class="fa-solid fa-pen"></i> {{ 'Edit Article'|trans }}

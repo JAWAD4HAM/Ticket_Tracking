@@ -195,13 +195,19 @@ class HelpdeskController extends AbstractController
         $fromDate = $this->parseDateFilter($fromFilter);
         $toDate = $this->parseDateFilter($toFilter, true);
 
+        $viewingTech = null;
+        if (!$this->isGranted('ROLE_MANAGER')) {
+            $viewingTech = $this->getUser();
+        }
+
         $tickets = $ticketRepository->findFiltered(
             $statusFilter ?: null,
             $priorityFilter ? (int) $priorityFilter : null,
             $fromDate,
             $toDate,
             $assigneeFilter,
-            $specialFilter
+            $specialFilter,
+            $viewingTech
         );
 
         $statuses = $entityManager->getRepository(Status::class)->findAll();
@@ -768,14 +774,31 @@ class HelpdeskController extends AbstractController
     private function assertCanAccessTicket(Ticket $ticket): void
     {
         $user = $this->getUser();
-
-        $canAccess = $this->isGranted('ROLE_TECH')
-            || ($user && $ticket->getCreator() && $ticket->getCreator()->getId() === $user->getId())
-            || ($user && $ticket->getAssignee() && $ticket->getAssignee()->getId() === $user->getId());
-
-        if (!$canAccess) {
-            throw $this->createAccessDeniedException('You cannot access this ticket.');
+        if (!$user instanceof User) {
+             throw $this->createAccessDeniedException('You must be logged in.');
         }
+
+        if ($this->isGranted('ROLE_MANAGER')) {
+            return;
+        }
+
+        if ($this->isGranted('ROLE_TECH')) {
+            // Tech: Unassigned OR Assigned to Me OR Created by Me
+            $isUnassigned = $ticket->getAssignee() === null;
+            $isAssignedToMe = $ticket->getAssignee() && $ticket->getAssignee()->getId() === $user->getId();
+            $isCreator = $ticket->getCreator() && $ticket->getCreator()->getId() === $user->getId();
+
+            if ($isUnassigned || $isAssignedToMe || $isCreator) {
+                return;
+            }
+        } else {
+             // User: Created by Me
+             if ($ticket->getCreator() && $ticket->getCreator()->getId() === $user->getId()) {
+                 return;
+             }
+        }
+
+        throw $this->createAccessDeniedException('You cannot access this ticket.');
     }
 
     private function assertTicketNotDeleted(Ticket $ticket): void
