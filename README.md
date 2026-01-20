@@ -14,7 +14,7 @@ A modern, feature-rich helpdesk ticketing system built with Symfony, designed to
 ### 1. Clone the Repository
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/JAWAD4HAM/Ticket_Tracking
 cd HelpDesk
 ```
 
